@@ -1,0 +1,33 @@
+# Visual Studio
+.vs/
+*.ipch
+*.pch
+*.obj
+*.exe
+*.dll
+*.lib
+*.exp
+*.ilk
+*.pdb
+Debug/
+Release/
+x64/
+bin/
+obj/
+
+# CMake
+out/
+build/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+*.cmake.stamp
+
+# Sistema
+Thumbs.db
+.DS_Store
+
+# Otros
+*.log
+*.tmp
