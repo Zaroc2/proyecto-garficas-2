@@ -2,11 +2,19 @@
 //
 
 #include "proyecto-garficas-2.h"
+#include "core/window.h"
 
 using namespace std;
 
 int main()
 {
-	cout << "Hello CMake." << endl;
+	GLFWwindow* window = createWindow();
+
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+	do {
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0);
 	return 0;
 }

@@ -19,4 +19,6 @@ GLFWwindow* window;
 #include <glm/glm.hpp>
 using namespace glm;
 
+#include <CoreWindow.h>
+
 // TODO: Haga referencia aquí a los encabezados adicionales que el programa requiere.

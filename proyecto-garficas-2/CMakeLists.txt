@@ -3,7 +3,7 @@
 #
 
 # Agregue un origen al ejecutable de este proyecto.
-add_executable (proyecto-garficas-2 "proyecto-garficas-2.cpp" "proyecto-garficas-2.h")
+add_executable (proyecto-garficas-2 "proyecto-garficas-2.cpp" "proyecto-garficas-2.h" "core/window.cpp" "core/window.h")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET proyecto-garficas-2 PROPERTY CXX_STANDARD 20)
