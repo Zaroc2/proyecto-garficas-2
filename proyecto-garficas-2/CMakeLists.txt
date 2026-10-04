@@ -14,7 +14,7 @@ set(PROJECT_SOURCES
     # render/Texture.cpp
     "scene/Scene.cpp"
     "scene/Object.cpp"
-    # scene/Camera.cpp
+    "scene/Camera.cpp"
     # scene/Material.cpp
     "io/ModelLoader.cpp"
     # "io/MaterialLoader.cpp"
@@ -34,7 +34,7 @@ set(PROJECT_HEADERS
     # render/Texture.h
     "scene/Scene.h"
     "scene/Object.h"
-    # scene/Camera.h    
+    "scene/Camera.h"
     # scene/Material.h
     "io/ModelLoader.h"
     # "io/MaterialLoader.h"

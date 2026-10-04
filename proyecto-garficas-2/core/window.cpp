@@ -2,11 +2,6 @@
 
 #include "window.h"
 
-namespace {
-    constexpr int WINDOW_WIDTH = 1024;
-	constexpr int WINDOW_HEIGHT = 720;
-}
-
 GLFWwindow* createWindow() {
 	if (!glfwInit())
 	{

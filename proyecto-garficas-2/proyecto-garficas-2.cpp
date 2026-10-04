@@ -6,6 +6,8 @@
 
 #include <glm/gtc/matrix_transform.hpp> //SOLO PARA PROBAR SHADERS
 
+#include "scene/Camera.h"
+
 
 using namespace std;
 
@@ -20,9 +22,6 @@ int main()
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
-
-	//char vertexShaderPath[] = "C:\\Users\\logis\\source\\repos\\proyecto-garficas-2\\assets\\shaders\\SimpleShader.vertexshader";
-	//char fragmentShaderPath[] = "C:\\Users\\logis\\source\\repos\\proyecto-garficas-2\\assets\\shaders\\SimpleShader.fragmentshader";
 
 	char vertexShaderPath[] = "../../../../assets/shaders/Basic.vertexshader";
 	char fragmentShaderPath[] = "../../../../assets/shaders/Basic.fragmentshader";
@@ -54,13 +53,15 @@ int main()
 
 	MeshManager meshManager;
 
-	Mesh* mesh = meshManager.getCube();
+	Mesh* mesh = meshManager.getCylinder();
+
+	Camera camera;
 
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 1024.0f / 720.0f, 0.1f, 100.0f);
-		glm::mat4 View = glm::lookAt(glm::vec3(4, 3, 3), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+		glm::mat4 Projection = camera.getProjectionMatrix(WINDOW_WIDTH / (float)WINDOW_HEIGHT);
+		glm::mat4 View = camera.getViewMatrix();
 		glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
 		Model = glm::rotate(Model, (float)glfwGetTime(), glm::vec3(0, 1, 0));
 		glm::mat4 MVP = Projection * View * Model;
