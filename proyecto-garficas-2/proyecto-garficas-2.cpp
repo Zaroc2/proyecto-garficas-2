@@ -7,6 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp> //SOLO PARA PROBAR SHADERS
 
 #include "scene/Camera.h"
+#include "scene/Scene.h"
+#include "scene/Object.h"
 
 
 using namespace std;
@@ -33,51 +35,34 @@ int main()
 		return -1;
 	}
 
-	//---PRUEBA
-	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-	GLuint ModelMatrixID = glGetUniformLocation(programID, "modelMatrix");
-	GLuint LightDirID = glGetUniformLocation(programID, "lightDir");
-	GLuint ObjectColorID = glGetUniformLocation(programID, "objectColor");
-	GLuint AlphaID = glGetUniformLocation(programID, "alpha");
-
-	// Activar depth test (crítico para 3D)
-	glEnable(GL_DEPTH_TEST);
-	//---PRUEBA
-
-	std::vector<Vertex> vertices = {
-	{{-1.0f, -1.0f, 0.0f}, {0, 0, 1}},
-	{{ 1.0f, -1.0f, 0.0f}, {0, 0, 1}},
-	{{ 0.0f,  1.0f, 0.0f}, {0, 0, 1}},
-	};
-	std::vector<uint32_t> indices = { 0, 1, 2 };
+	Camera camera;
 
 	MeshManager meshManager;
 
-	Mesh* mesh = meshManager.getCylinder();
+	// creamos un objeto
+	unique_ptr<Object> cube = make_unique<Object>();
+	cube->mesh = meshManager.getCube();
+	cube->transform.scale = glm::vec3(2, 2, 2);
+	cube->id = 1;
 
-	Camera camera;
+	// creamos otro objeto
+	unique_ptr<Object> piramid = make_unique<Object>();
+	piramid->mesh = meshManager.getPyramid();
+	piramid->transform.position = glm::vec3(3, 0, 0);
+	piramid->id = 2;
 
+	Scene scene;
+	scene.camera = camera;
+	scene.addObject(std::move(cube));
+	scene.addObject(std::move(piramid));
+	scene.setup(programID);
 	do {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
-		glm::mat4 Projection = camera.getProjectionMatrix(WINDOW_WIDTH / (float)WINDOW_HEIGHT);
-		glm::mat4 View = camera.getViewMatrix();
-		glm::mat4 Model = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
-		Model = glm::rotate(Model, (float)glfwGetTime(), glm::vec3(0, 1, 0));
-		glm::mat4 MVP = Projection * View * Model;
 
-		glUseProgram(programID);
+		scene.findById(1)->transform.rotation.y = 10.0f * (float)glfwGetTime();
+		scene.findById(2)->transform.rotation.z = 10.0f * (float)glfwGetTime();
 
-		//---prueba
-		// Enviar uniforms
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Model[0][0]);
-		glUniform3f(LightDirID, -0.5f, -1.0f, -0.3f);
-		glUniform3f(ObjectColorID, 1.0f, 0.4f, 0.4f);
-		glUniform1f(AlphaID, 1.0f);
-		//---prueba
-
-		mesh->draw();
+		scene.draw(WINDOW_WIDTH / (float)WINDOW_HEIGHT);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
