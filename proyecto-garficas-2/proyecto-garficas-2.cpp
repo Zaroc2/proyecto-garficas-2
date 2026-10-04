@@ -38,7 +38,6 @@ int main()
 
         std::unique_ptr<Object> importedObj = std::make_unique<Object>();
         importedObj->mesh = loadedMesh;
-        importedObj->id = 3;
         importedObj->name = "modelo_cargado";
         importedObj->transform.position = glm::vec3(-3.0f, 0.0f, 0.0f);  // al lado de los otros
 		importedObj->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
@@ -56,7 +55,6 @@ int main()
     unique_ptr<Object> cube = make_unique<Object>();
     cube->mesh = meshManager.getCube();
     cube->transform.scale = glm::vec3(2.0f, 2.0f, 2.0f);
-    cube->id = 1;
     cube->diffuseColor = glm::vec3(1.0f, 0.4f, 0.4f);
     scene.addObject(std::move(cube));
 
@@ -64,7 +62,6 @@ int main()
     unique_ptr<Object> piramid = make_unique<Object>();
     piramid->mesh = meshManager.getPyramid();
     piramid->transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
-    piramid->id = 2;
     piramid->diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
     scene.addObject(std::move(piramid));
 
@@ -98,7 +95,7 @@ int main()
       if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) scene.camera->moveUp(delta);
       if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) scene.camera->moveDown(delta);
     
-    	scene.camera->updateFromMouse(dx * delta, dy * delta);
+    	scene.camera->updateFromMouse(dx, dy);
         // Animación
         scene.findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
         scene.findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
