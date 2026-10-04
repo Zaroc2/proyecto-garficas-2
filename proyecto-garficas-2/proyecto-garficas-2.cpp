@@ -44,6 +44,7 @@ int main()
 		importedObj->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 		importedObj->transform.rotation = glm::vec3(270.0f, -10.0f, 60.0f); // rotación inicial
         importedObj->diffuseColor = loaded.diffuseColor;
+        importedObj->showVertices = true;
         scene.addObject(std::move(importedObj));
     }
     else {
