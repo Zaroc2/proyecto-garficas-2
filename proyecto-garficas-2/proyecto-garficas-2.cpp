@@ -25,7 +25,6 @@ int main()
     MeshManager meshManager;
 
     // Crear escena
-    Scene scene;
     std::unique_ptr<Camera> camera = std::make_unique<Camera>();
     Scene scene;
     scene.camera = std::move(camera);
@@ -98,7 +97,7 @@ int main()
       if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) scene.camera->moveUp(delta);
       if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) scene.camera->moveDown(delta);
     
-    		scene.camera->updateFromMouse(dx * delta, dy * delta);
+    	scene.camera->updateFromMouse(dx * delta, dy * delta);
         // Animación
         scene.findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
         scene.findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
