@@ -2,6 +2,7 @@
 
 Object* Scene::addObject(std::unique_ptr<Object> obj) {
 	Object* ptr = obj.get();
+	ptr->id = nextObjectId++;
 	objects.push_back(std::move(obj));
 	return ptr;
 }

@@ -18,7 +18,7 @@ Leyenda:
 - [x] 🤝 Definir interfaz de `Renderer` (`renderScene`, `renderForPicking`, `readPixel`)
 - [x] 🤝 Definir interfaz de `ModelLoader` (`loadOBJ` con `LoadedModel`)
 - [x] 🤝 Definir interfaz de `SceneSerializer` (`saveScene`, `loadScene`)
-- [x] 🤝 Definir `enum class SelectionMode { LOCAL, GLOBAL }`
+- [ ] 🤝 Definir `enum class SelectionMode { LOCAL, GLOBAL }`
 - [x] 🤝 Configurar repositorio Git y `.gitignore` (build/, .vscode/, etc.)
 
 ---
@@ -33,7 +33,7 @@ Leyenda:
 - [x] 👤 A Implementar `Scene::addObject` (asignar ID, mover unique_ptr, devolver raw)
 - [x] 👤 A Implementar `Scene::removeObject(uint32_t id)`
 - [x] 👤 A Implementar `Scene::clear()` (limpiar objetos y resetear `nextId`)
-- [ ] 👤 A Implementar contador `nextId` empezando en **1** (0 reservado para "vacío")
+- [x] 👤 A Implementar contador `nextId` empezando en **1** (0 reservado para "vacío")
 
 ### A2. Cámara
 

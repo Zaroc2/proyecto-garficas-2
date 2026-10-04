@@ -14,6 +14,8 @@ private:
 	GLuint LightDirID = 0;
 	GLuint ObjectColorID = 0;
 	GLuint AlphaID = 0;
+
+	int nextObjectId = 1; // Para asignar IDs únicos a los objetos
     
 public:
     std::vector<std::unique_ptr<Object>> objects;

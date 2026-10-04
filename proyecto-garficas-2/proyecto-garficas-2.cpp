@@ -43,13 +43,11 @@ int main()
 	unique_ptr<Object> cube = make_unique<Object>();
 	cube->mesh = meshManager.getCube();
 	cube->transform.scale = glm::vec3(2, 2, 2);
-	cube->id = 1;
 
 	// creamos otro objeto
 	unique_ptr<Object> piramid = make_unique<Object>();
 	piramid->mesh = meshManager.getPyramid();
 	piramid->transform.position = glm::vec3(3, 0, 0);
-	piramid->id = 2;
 
 	Scene scene;
 	scene.camera = camera;
