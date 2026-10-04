@@ -56,6 +56,7 @@ endif()
 
 target_include_directories(proyecto-garficas-2 PRIVATE ./)
 target_include_directories(proyecto-garficas-2 PRIVATE ../external/tinyobjloader)
+target_include_directories(proyecto-garficas-2 PRIVATE ../external/nlohmann)
 
 target_link_libraries(proyecto-garficas-2 PRIVATE 
     glfw 
