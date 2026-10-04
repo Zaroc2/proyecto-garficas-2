@@ -1,0 +1,29 @@
+#version 330 core
+
+// Entradas del vertex shader (Se supone que vienen interpoladas por OpenGL)
+in vec3 fragNormal;
+in vec3 fragPosWorld;
+
+// El color final del fragmento (salida del shader)
+out vec4 fragColor;
+
+// Uniforms del material y la luz
+uniform vec3 lightDir;      // dirección de la luz
+uniform vec3 objectColor;   // Kd del objeto
+uniform float alpha;        // transparencia
+
+void main() {
+    // Normalizar (la interpolación puede desnormalizar el vector)
+    vec3 N = normalize(fragNormal);
+
+    // El signo negativo es porque lightDir apunta hacia la escena, no desde la luz.
+    // formula vista en clases
+    float diff = max(dot(N, -lightDir), 0.0);
+
+    // Componente ambiente + componente difusa
+    // Ambiente (0.3) simula luz indirecta para que las zonas en sombra no sean negras puras.
+    // Difusa (0.7) es la luz principal.
+    vec3 color = objectColor * (0.3 + 0.7 * diff);
+
+    fragColor = vec4(color, alpha);
+}

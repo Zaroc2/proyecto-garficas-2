@@ -1,0 +1,26 @@
+#version 330 core
+
+// Atributos del VBO
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aNormal;
+
+// Uniforms de la CPU
+uniform mat4 MVP;           // Projection * View * Model
+uniform mat4 modelMatrix;   // solo la Model (necesaria para transformar normales)
+
+// Salidas hacia el fragment shader
+out vec3 fragNormal;
+out vec3 fragPosWorld;
+
+void main() {
+    // Posición final al renderizar por OpenGL (clip space)
+    gl_Position = MVP * vec4(aPos, 1.0);
+
+    // Transformamos la normal al espacio mundo.
+    // Usamos la inversa-transpuesta de la matriz model porque si hay escala no uniforme,
+    // multiplicar la normal por la model directamente la distorsionaría.
+    fragNormal = mat3(transpose(inverse(modelMatrix))) * aNormal;
+
+    // Si necesitamos la posición del vértice en espacio mundo (útil para cálculo de luz en el proyecto 3)
+    // fragPosWorld = vec3(modelMatrix * vec4(aPos, 1.0));
+}
