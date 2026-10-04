@@ -43,7 +43,10 @@ int main()
 		importedObj->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 		importedObj->transform.rotation = glm::vec3(270.0f, -10.0f, 60.0f); // rotación inicial
         importedObj->diffuseColor = loaded.diffuseColor;
-        importedObj->showVertices = true;
+        importedObj->showVertices = false;
+        importedObj->wireframe = false;
+        importedObj->showBBox = false;
+        importedObj->showNormals = false;
         scene.addObject(std::move(importedObj));
     }
     else {
@@ -56,6 +59,10 @@ int main()
     cube->mesh = meshManager.getCube();
     cube->transform.scale = glm::vec3(2.0f, 2.0f, 2.0f);
     cube->diffuseColor = glm::vec3(1.0f, 0.4f, 0.4f);
+    cube->showVertices = false;
+    cube->wireframe = false;
+    cube->showBBox = false;
+    cube->showNormals = true;
     scene.addObject(std::move(cube));
 
     // Pirámide azul
@@ -63,6 +70,10 @@ int main()
     piramid->mesh = meshManager.getPyramid();
     piramid->transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
     piramid->diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
+    piramid->showVertices = false;
+    piramid->wireframe = false;
+    piramid->showBBox = false;
+    piramid->showNormals = true;
     scene.addObject(std::move(piramid));
 
     // Renderer
