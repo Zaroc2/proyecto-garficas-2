@@ -10,6 +10,8 @@
 #include "scene/Scene.h"
 #include "scene/Object.h"
 
+#include "io/ModelLoader.h"
+
 
 using namespace std;
 
@@ -24,6 +26,27 @@ int main()
 
     // Crear escena
     Scene scene;
+
+    // Cargar un modelo .obj
+    LoadedModel loaded;
+
+    if (loadOBJ("../../../../assets/models/nrt.obj", "../../../../assets/models/", loaded)) {
+        Mesh* loadedMesh = meshManager.getOrLoadModel(100, loaded.vertices, loaded.indices);
+
+        std::unique_ptr<Object> importedObj = std::make_unique<Object>();
+        importedObj->mesh = loadedMesh;
+        importedObj->id = 3;
+        importedObj->name = "modelo_cargado";
+        importedObj->transform.position = glm::vec3(-3.0f, 0.0f, 0.0f);  // al lado de los otros
+		importedObj->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
+		importedObj->transform.rotation = glm::vec3(270.0f, -10.0f, 60.0f); // rotación inicial
+        importedObj->diffuseColor = loaded.diffuseColor;
+        scene.addObject(std::move(importedObj));
+    }
+    else {
+        printf("No se pudo cargar el modelo\n");
+    }
+
 
     // Cubo rojo
     unique_ptr<Object> cube = make_unique<Object>();
@@ -51,6 +74,15 @@ int main()
         // Animación
         scene.findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
         scene.findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
+
+        float b = 0.5f + 0.5f * sinf((float)glfwGetTime());   // oscila entre 0 y 1
+        scene.findById(1)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
+        scene.findById(1)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
+        scene.findById(2)->diffuseColor = glm::vec3(b, 0.4f, 0.4f);
+        scene.findById(2)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
+        scene.findById(3)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
+        scene.findById(3)->diffuseColor = glm::vec3(b, 0.1f, 0.4f);
+
 
         // Render
         renderer.renderScene(scene, aspectRatio);
