@@ -7,8 +7,8 @@ set(PROJECT_SOURCES
     "proyecto-garficas-2.cpp"
     "core/Window.cpp"
     # core/Application.cpp
-   "render/Renderer.cpp"
-    # render/Shader.cpp
+    "render/Renderer.cpp"
+    "render/Shader.cpp"
     # render/Mesh.cpp
     # render/Texture.cpp
     "scene/Scene.cpp"
@@ -27,7 +27,7 @@ set(PROJECT_HEADERS
     # core/Application.h
     "render/Renderer.h"
     "render/Vertex.h"
-    # render/Shader.h
+    "render/Shader.h"
     # render/Mesh.h
     # render/Texture.h
     "scene/Scene.h"
@@ -55,7 +55,7 @@ endif()
 target_include_directories(proyecto-garficas-2 PRIVATE ./)
 
 target_link_libraries(proyecto-garficas-2 PRIVATE 
-    glfw  
+    glfw 
     glm
     glad
     imgui

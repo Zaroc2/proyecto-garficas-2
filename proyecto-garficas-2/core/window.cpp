@@ -30,7 +30,13 @@ GLFWwindow* createWindow() {
 		return NULL;
 	}
 
-	glfwMakeContextCurrent(window); // Inicializamos GLEW
+	glfwMakeContextCurrent(window);
+
+	if (!gladLoadGL(glfwGetProcAddress)){
+		fprintf(stderr, "Failed to initialize OpenGL context\n");
+		glfwTerminate();
+		return NULL;
+	}
 
 	return window;
 }
