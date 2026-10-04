@@ -19,7 +19,7 @@ private:
     
 public:
     std::vector<std::unique_ptr<Object>> objects;
-    Camera camera;
+    std::unique_ptr<Camera> camera;
     glm::vec3 backgroundColor = { 0.1f, 0.1f, 0.15f };
     bool depthTestEnabled = true;
     bool backFaceCullingEnabled = true;

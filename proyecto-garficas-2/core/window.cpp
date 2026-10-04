@@ -27,6 +27,9 @@ GLFWwindow* createWindow() {
 
 	glfwMakeContextCurrent(window);
 
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
 	if (!gladLoadGL(glfwGetProcAddress)){
 		fprintf(stderr, "Failed to initialize OpenGL context\n");
 		glfwTerminate();

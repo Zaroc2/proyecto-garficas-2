@@ -43,8 +43,8 @@ void Scene::draw(float ratio) {
 
 	else glDisable(GL_CULL_FACE);
 
-	glm::mat4 Projection = camera.getProjectionMatrix(ratio);
-	glm::mat4 View = camera.getViewMatrix();
+	glm::mat4 Projection = camera->getProjectionMatrix(ratio);
+	glm::mat4 View = camera->getViewMatrix();
 
 	glUseProgram(shaderProgram);
 	for (const auto& obj : objects) {

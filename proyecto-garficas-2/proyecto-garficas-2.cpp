@@ -17,8 +17,6 @@ int main()
 {
 	GLFWwindow* window = createWindow();
 
-	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
 	glClearColor(0.0f, 0.0f, 0.1f, 0.0f);
 
 	GLuint VertexArrayID;
@@ -35,7 +33,7 @@ int main()
 		return -1;
 	}
 
-	Camera camera;
+	std::unique_ptr<Camera> camera = std::make_unique<Camera>();
 
 	MeshManager meshManager;
 
@@ -50,15 +48,43 @@ int main()
 	piramid->transform.position = glm::vec3(3, 0, 0);
 
 	Scene scene;
-	scene.camera = camera;
+	scene.camera = std::move(camera);
+	scene.camera->updateFromMouse(0, 0);
+
 	scene.addObject(std::move(cube));
 	scene.addObject(std::move(piramid));
 	scene.setup(programID);
+
+	double lastxpos = 0, lastypos = 0;
+	double lastTime = glfwGetTime();
 	do {
+		double currentTime = glfwGetTime();
+		double delta = currentTime - lastTime;
+
+		// obtener imputs del mouse
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		double dx = xpos - lastxpos;
+		double dy = lastypos - ypos;
+		lastxpos = xpos;
+		lastypos = ypos;
+		if (dx != 0 || dy != 0) {
+			printf("Mouse movement: %f, %f\n", dx, dy);
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) scene.camera->moveFoward(delta);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) scene.camera->moveBackward(delta);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) scene.camera->moveRight(delta);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) scene.camera->moveLeft(delta);
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) scene.camera->moveUp(delta);
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) scene.camera->moveDown(delta);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		scene.findById(1)->transform.rotation.y = 10.0f * (float)glfwGetTime();
 		scene.findById(2)->transform.rotation.z = 10.0f * (float)glfwGetTime();
+		// scene.camera->position.x = 5.0f * sin(glfwGetTime());
+		scene.camera->updateFromMouse(dx * delta, dy * delta);
 
 		scene.draw(WINDOW_WIDTH / (float)WINDOW_HEIGHT);
 
