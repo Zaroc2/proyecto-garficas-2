@@ -8,8 +8,8 @@
 
 // src/scene/Scene.h
 class Scene {
-
 public:
+	int nextObjectId = 1;
     std::vector<std::unique_ptr<Object>> objects;
     std::unique_ptr<Camera> camera;
     glm::vec3 backgroundColor = { 0.1f, 0.1f, 0.15f };
@@ -20,5 +20,4 @@ public:
     void    removeObject(uint32_t id);
     void    clear();
     Object* findById(uint32_t id);
-
 };
