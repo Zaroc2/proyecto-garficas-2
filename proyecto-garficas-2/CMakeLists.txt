@@ -6,7 +6,7 @@ set(PROJECT_SOURCES
     proyecto-garficas-2
     "proyecto-garficas-2.cpp"
     "core/Window.cpp"
-    # core/Application.cpp
+    "core/Application.cpp"
     "render/Renderer.cpp"
     "render/Shader.cpp"
     "render/Mesh.cpp"
@@ -25,7 +25,7 @@ set(PROJECT_SOURCES
 set(PROJECT_HEADERS
     "proyecto-garficas-2.h"
     "core/Window.h"
-    # core/Application.h
+    "core/Application.h"
     "render/Renderer.h"
     "render/Vertex.h"
     "render/Shader.h"
