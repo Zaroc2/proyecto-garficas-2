@@ -109,7 +109,7 @@ int main()
     float aspectRatio = WINDOW_WIDTH / (float)WINDOW_HEIGHT;
     do {
         glfwPollEvents();
-		app->run(window, scene);
+		app->run(window, scene, &meshManager);
 
         // Calcular aspect ratio actual por si hubo resize
         int fbW, fbH;
