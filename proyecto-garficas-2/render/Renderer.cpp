@@ -187,6 +187,34 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
 
         obj->mesh->draw();
 
+        if (obj->selectedTriangleId >= 0 || obj->selectedSubMesh >= 0) {
+            //Dibujamos los objetos seleccionados
+            glUseProgram(debugProgram);
+
+            glm::mat4 MVP = Projection * View * Model;
+            glUniformMatrix4fv(debugMvpID, 1, GL_FALSE, &MVP[0][0]);
+            glUniform3f(debugColorID, 1.0f, 0.5f, 0.0f);   // pintamos de naranja
+
+            glDisable(GL_DEPTH_TEST); // desactivamos depthtest para que se dibujo encima si o si
+            //bindeamos su vao y dibujamos
+            glBindVertexArray(obj->mesh->getVAO());
+
+            if (obj->selectedTriangleId >= 0) {
+                // Un solo triángulo
+                glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(obj->selectedTriangleId * 3 * sizeof(uint32_t)));
+            }
+            else if (obj->selectedSubMesh >= 0) {
+                // todo el submesh
+                const SubMesh& sub = obj->mesh->getSubMeshes()[obj->selectedSubMesh];
+                glDrawElements(GL_TRIANGLES, sub.indexCount, GL_UNSIGNED_INT, (void*)(sub.indexOffset * sizeof(uint32_t)));
+            }
+
+            //desbindeamos el vao, activamos depth test y el shaderProgram
+            glBindVertexArray(0);
+            glEnable(GL_DEPTH_TEST);
+            glUseProgram(shaderProgram);
+        }
+
         if (obj->wireframe || obj->showVertices) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }

@@ -6,6 +6,8 @@
 #include "Object.h"
 #include "Camera.h"
 
+enum class SelectionMode { GLOBAL, LOCAL, TRIANGLE }
+
 // src/scene/Scene.h
 class Scene {
 public:
@@ -17,6 +19,7 @@ public:
     bool backFaceCullingEnabled = true;
 
     int selectedObjId = -1;
+    SelectionMode selectionMode = SelectionMode::GLOBAL;
 
     Object* addObject(std::unique_ptr<Object> obj);
     void    removeObject(uint32_t id);

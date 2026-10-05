@@ -105,6 +105,44 @@ int main()
     do {
         glfwPollEvents();
 		app->run(window, scene);
+        static bool mouseWasPressed = false;
+        bool mousePressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+
+
+        if (mousePressed && !mouseWasPressed && app->selectionMode == SELECT && !ImGui::GetIO().WantCaptureMouse) {
+            double mx, my;
+            glfwGetCursorPos(window, &mx, &my);
+            renderer.renderForPicking(scene);
+            PickingResult r = renderer.readPixel((int)mx, (int)my);
+
+            //Limpiamos la anterior selección si había
+            for (int i = 0; i < scene->objects.size();i++) {
+                scene->objects[i]->selectedSubMesh = -1;
+                scene->objects[i]->selectedTriangleId = -1;
+            }
+
+            scene->selectObj(r.objectId);
+
+            // Guardamos el triángulo en el objeto
+            if (r.objectId != 0) {
+                Object* selectedObj = scene->findById(r.objectId);
+                if (selectedObj)
+                    selectedObj->selectedTriangleId = (int)r.triangleId;
+                // buscamos en qué submesh cae para asig
+                uint32_t triStart = r.triangleId * 3;
+                const std::vector<SubMesh> subs = selectedObj->mesh->getSubMeshes();
+                for (size_t i = 0; i < subs.size(); ++i) {
+                    if (triStart >= subs[i].indexOffset && triStart < subs[i].indexOffset + subs[i].indexCount) {
+                        selectedObj->selectedSubMesh = (int)i;
+                        break;
+                    }
+                }
+            }
+        }
+        mouseWasPressed = mousePressed;
+
+
+
         // Animación
         scene->findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
         scene->findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
@@ -120,13 +158,6 @@ int main()
 
         // Render
         renderer.renderScene(scene, aspectRatio);
-
-        // PRUEBA TEMPORAL: con la tecla P, imprimir el ID del centro de la pantalla
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            renderer.renderForPicking(scene);
-            PickingResult r = renderer.readPixel(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
-            printf("Picking centro: objectId=%u, triangleId=%u\n", r.objectId, r.triangleId);
-        }
 
         // Rendering
 		// (Your code clears your framebuffer, renders your other stuff etc.)
