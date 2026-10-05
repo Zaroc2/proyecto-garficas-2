@@ -81,6 +81,7 @@ int main()
     // Renderer
     Renderer renderer;
     renderer.init();
+    renderer.initPicking(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     float aspectRatio = WINDOW_WIDTH / (float)WINDOW_HEIGHT;
 
@@ -100,9 +101,6 @@ int main()
 		double dy = lastypos - ypos;
 		lastxpos = xpos;
 		lastypos = ypos;
-		if (dx != 0 || dy != 0) {
-		  printf("Mouse movement: %f, %f\n", dx, dy);
-		}
 
 		if (selectionMode == MOVE) {
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) scene.camera->moveFoward(delta);
@@ -151,6 +149,13 @@ int main()
 
         // Render
         renderer.renderScene(scene, aspectRatio);
+
+        // PRUEBA TEMPORAL: con la tecla P, imprimir el ID del centro de la pantalla
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+            renderer.renderForPicking(scene);
+            PickingResult r = renderer.readPixel(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+            printf("Picking centro: objectId=%u, triangleId=%u\n", r.objectId, r.triangleId);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
