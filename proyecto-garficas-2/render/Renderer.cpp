@@ -213,6 +213,7 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
                 glUniformMatrix4fv(debugMvpID, 1, GL_FALSE, &MVP[0][0]);
                 glUniform3f(debugColorID, 1.0f, 0.5f, 0.0f);   // pintamos de naranja
 
+                GLboolean depthWasEnabled = glIsEnabled(GL_DEPTH_TEST);
                 glDisable(GL_DEPTH_TEST); // desactivamos depthtest para que se dibujo encima si o si
                 //bindeamos su vao y dibujamos
                 glBindVertexArray(obj->mesh->getVAO());
@@ -229,7 +230,8 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
 
                 //desbindeamos el vao, activamos depth test y el shaderProgram
                 glBindVertexArray(0);
-                glEnable(GL_DEPTH_TEST);
+                if (depthWasEnabled) 
+                    glEnable(GL_DEPTH_TEST);
                 glUseProgram(shaderProgram);
             }
 

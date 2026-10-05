@@ -159,20 +159,6 @@ int main()
         mouseWasPressed = mousePressed;
 
 
-
-        // Animación
-        scene->findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
-        scene->findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
-
-        float b = 0.5f + 0.5f * sinf((float)glfwGetTime());   // oscila entre 0 y 1
-        scene->findById(1)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
-        scene->findById(1)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
-        scene->findById(2)->diffuseColor = glm::vec3(b, 0.4f, 0.4f);
-        scene->findById(2)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
-        scene->findById(3)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
-        scene->findById(3)->diffuseColor = glm::vec3(b, 0.1f, 0.4f);
-
-
         // Render
         renderer.renderScene(scene, aspectRatio);
 
