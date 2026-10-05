@@ -11,9 +11,7 @@
 #include "scene/Object.h"
 
 #include "io/ModelLoader.h"
-
-
-enum SELECTION_STATE { MOVE, SELECT };
+#include "core/Application.h"
 
 using namespace std;
 
@@ -28,9 +26,9 @@ int main()
 
     // Crear escena
     std::unique_ptr<Camera> camera = std::make_unique<Camera>();
-    Scene scene;
-    scene.camera = std::move(camera);
-    scene.camera->updateFromMouse(0, 0);
+    Scene* scene = new Scene();
+    scene->camera = std::move(camera);
+    scene->camera->updateFromMouse(0, 0);
 
     // Cargar un modelo .obj
     LoadedModel loaded;
@@ -49,7 +47,7 @@ int main()
         importedObj->wireframe = false;
         importedObj->showBBox = false;
         importedObj->showNormals = false;
-        scene.addObject(std::move(importedObj));
+        scene->addObject(std::move(importedObj));
     }
     else {
         printf("No se pudo cargar el modelo\n");
@@ -65,7 +63,7 @@ int main()
     cube->wireframe = false;
     cube->showBBox = false;
     cube->showNormals = true;
-    scene.addObject(std::move(cube));
+    scene->addObject(std::move(cube));
 
     // Pirámide azul
     unique_ptr<Object> piramid = make_unique<Object>();
@@ -76,77 +74,28 @@ int main()
     piramid->wireframe = false;
     piramid->showBBox = false;
     piramid->showNormals = true;
-    scene.addObject(std::move(piramid));
+    scene->addObject(std::move(piramid));
 
     // Renderer
     Renderer renderer;
     renderer.init();
 
+	Application* app = new Application();
+
     float aspectRatio = WINDOW_WIDTH / (float)WINDOW_HEIGHT;
-
-	SELECTION_STATE selectionMode = SELECT;
-    bool selectionModeChange = false;
-
-    double lastxpos = 0, lastypos = 0;
-    double lastTime = glfwGetTime();
     do {
-        double currentTime = glfwGetTime();
-        double delta = currentTime - lastTime;
-
-        // obtener imputs del mouse
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
-		double dx = xpos - lastxpos;
-		double dy = lastypos - ypos;
-		lastxpos = xpos;
-		lastypos = ypos;
-		if (dx != 0 || dy != 0) {
-		  printf("Mouse movement: %f, %f\n", dx, dy);
-		}
-
-		if (selectionMode == MOVE) {
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) scene.camera->moveFoward(delta);
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) scene.camera->moveBackward(delta);
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) scene.camera->moveRight(delta);
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) scene.camera->moveLeft(delta);
-			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) scene.camera->moveUp(delta);
-			if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) scene.camera->moveDown(delta);
-		}
-        if (glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS) {
-            if(!selectionModeChange) {
-				if(selectionMode == SELECT) {
-					selectionMode = MOVE;
-				} else {
-					selectionMode = SELECT;
-				}
-
-				if (selectionMode == SELECT) {
-					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-				}
-				else {
-					glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-				}
-            }
-            selectionModeChange = true;
-        }
-        else {
-            selectionModeChange = false;
-        }
-    
-        if (selectionMode == MOVE) {
-    	    scene.camera->updateFromMouse(dx, dy);
-        }
+		app->run(window, scene);
         // Animación
-        scene.findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
-        scene.findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
+        scene->findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
+        scene->findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
 
         float b = 0.5f + 0.5f * sinf((float)glfwGetTime());   // oscila entre 0 y 1
-        scene.findById(1)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
-        scene.findById(1)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
-        scene.findById(2)->diffuseColor = glm::vec3(b, 0.4f, 0.4f);
-        scene.findById(2)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
-        scene.findById(3)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
-        scene.findById(3)->diffuseColor = glm::vec3(b, 0.1f, 0.4f);
+        scene->findById(1)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
+        scene->findById(1)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
+        scene->findById(2)->diffuseColor = glm::vec3(b, 0.4f, 0.4f);
+        scene->findById(2)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
+        scene->findById(3)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
+        scene->findById(3)->diffuseColor = glm::vec3(b, 0.1f, 0.4f);
 
 
         // Render
