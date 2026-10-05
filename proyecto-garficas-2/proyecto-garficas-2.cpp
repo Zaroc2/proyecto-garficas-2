@@ -52,6 +52,10 @@ int main()
     if (loadOBJ("../../../../assets/models/nrt.obj", "../../../../assets/models/", loaded)) {
         Mesh* loadedMesh = meshManager.getOrLoadModel(100, loaded.vertices, loaded.indices);
 
+        for(int i=0; i < loaded.subMeshes.size(); i++){
+            loadedMesh->addSubMesh(loaded.subMeshes.at(i));
+        }
+
         std::unique_ptr<Object> importedObj = std::make_unique<Object>();
         importedObj->mesh = loadedMesh;
         importedObj->name = "modelo_cargado";
@@ -126,16 +130,28 @@ int main()
             // Guardamos el triángulo en el objeto
             if (r.objectId != 0) {
                 Object* selectedObj = scene->findById(r.objectId);
-                if (selectedObj)
-                    selectedObj->selectedTriangleId = (int)r.triangleId;
                 // buscamos en qué submesh cae para asig
                 uint32_t triStart = r.triangleId * 3;
+                int subMeshIdx = -1;
                 const std::vector<SubMesh> subs = selectedObj->mesh->getSubMeshes();
                 for (size_t i = 0; i < subs.size(); ++i) {
                     if (triStart >= subs[i].indexOffset && triStart < subs[i].indexOffset + subs[i].indexCount) {
-                        selectedObj->selectedSubMesh = (int)i;
+                        subMeshIdx = (int)i;
                         break;
                     }
+                }
+
+                // Aplicar según el modo
+                switch (scene->selectionMode) {
+                case SelectionMode::GLOBAL:
+                    // nada extra: solo el objeto entero
+                    break;
+                case SelectionMode::LOCAL:
+                    selectedObj->selectedSubMesh = subMeshIdx;
+                    break;
+                case SelectionMode::TRIANGLE:
+                    selectedObj->selectedTriangleId = (int)r.triangleId;
+                    break;
                 }
             }
         }

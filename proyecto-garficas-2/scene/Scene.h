@@ -6,7 +6,7 @@
 #include "Object.h"
 #include "Camera.h"
 
-enum class SelectionMode { GLOBAL, LOCAL, TRIANGLE }
+enum class SelectionMode { GLOBAL, LOCAL, TRIANGLE };
 
 // src/scene/Scene.h
 class Scene {
