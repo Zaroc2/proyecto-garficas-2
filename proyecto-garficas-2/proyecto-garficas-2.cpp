@@ -97,6 +97,7 @@ int main()
     // Renderer
     Renderer renderer;
     renderer.init();
+    renderer.initPicking(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	Application* app = new Application();
 
@@ -119,6 +120,13 @@ int main()
 
         // Render
         renderer.renderScene(scene, aspectRatio);
+
+        // PRUEBA TEMPORAL: con la tecla P, imprimir el ID del centro de la pantalla
+        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+            renderer.renderForPicking(scene);
+            PickingResult r = renderer.readPixel(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
+            printf("Picking centro: objectId=%u, triangleId=%u\n", r.objectId, r.triangleId);
+        }
 
         // Rendering
 		// (Your code clears your framebuffer, renders your other stuff etc.)
