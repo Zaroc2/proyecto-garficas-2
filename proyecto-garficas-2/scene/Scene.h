@@ -17,6 +17,7 @@ public:
     glm::vec3 backgroundColor = { 0.1f, 0.1f, 0.15f };
     bool depthTestEnabled = true;
     bool backFaceCullingEnabled = true;
+    bool blendingEnabled = true;
 
     int selectedObjId = -1;
     SelectionMode selectionMode = SelectionMode::GLOBAL;

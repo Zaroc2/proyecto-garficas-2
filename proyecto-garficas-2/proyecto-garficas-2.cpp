@@ -83,6 +83,7 @@ int main()
     cube->wireframe = false;
     cube->showBBox = false;
     cube->showNormals = true;
+    cube->alpha = 0.5f;
     scene->addObject(std::move(cube));
 
     // Pirámide azul

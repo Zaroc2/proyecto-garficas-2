@@ -127,98 +127,119 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
     else
         glDisable(GL_CULL_FACE);
 
+    if (scene->blendingEnabled) {
+        //Activamos blend, glBlendFunc define color_final = alpha_nuevo * color_nuevo + (1 - alpha_nuevo) * color_detras
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    else {
+        glDisable(GL_BLEND);
+    }
+
     // Matrices de cámara
     glm::mat4 Projection = scene->camera->getProjectionMatrix(aspectRatio);
     glm::mat4 View = scene->camera->getViewMatrix();
 
     // Dibujar cada objeto
     glUseProgram(shaderProgram);
-    for (int i = 0; i < scene->objects.size(); ++i) {
-        Object* obj = scene->objects[i].get();
-        if (obj->mesh == nullptr) continue;
 
-        glm::mat4 Model = obj->transform.getModelMatrix();
+    for (int pass = 0; pass < 2; ++pass) {//Hacemos dos pasadas, una para los objetos opacos una para los transparentes
+        if (pass == 1) 
+            glDepthMask(GL_FALSE);
 
-        glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
-        glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
-        glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
+        for (int i = 0; i < scene->objects.size(); ++i) {
+            Object* obj = scene->objects[i].get();
+            if (obj->mesh == nullptr) continue;
 
-        // objectColor ahora es vec4 → incluye alpha
-        glUniform4f(ObjectColorID, obj->diffuseColor.r,
-            obj->diffuseColor.g,
-            obj->diffuseColor.b,
-            obj->alpha);
+            bool isTransparent = obj->alpha < 1.0f;
+            if (pass == 0 && isTransparent) continue;
+            if (pass == 1 && !isTransparent) continue;
 
-        glUniform3f(LightDirID, -0.5f, -1.0f, -0.3f); // dirección (se normaliza en el shader)
-        glUniform3f(LightColorID, 1.0f, 1.0f, 1.0f); // o el color que quieran
-        glUniform3f(AmbientID, 0.3f, 0.3f, 0.3f);
+            glm::mat4 Model = obj->transform.getModelMatrix();
 
-        if (obj->wireframe) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-        if (obj->showVertices) {
-            glPointSize(6.0f);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);   // o usar glDrawArrays(GL_POINTS)
-        }
+            glUniformMatrix4fv(ModelID, 1, GL_FALSE, &Model[0][0]);
+            glUniformMatrix4fv(ViewID, 1, GL_FALSE, &View[0][0]);
+            glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
 
-        if (obj->showBBox) {
-            glm::vec3 mn = obj->mesh->getBBoxMin();
-            glm::vec3 mx = obj->mesh->getBBoxMax();
-            glm::vec3 c[8] = {
-                {mn.x,mn.y,mn.z},{mx.x,mn.y,mn.z},{mx.x,mx.y,mn.z},{mn.x,mx.y,mn.z},
-                {mn.x,mn.y,mx.z},{mx.x,mn.y,mx.z},{mx.x,mx.y,mx.z},{mn.x,mx.y,mx.z}
-            };
-            int e[12][2] = { {0,1},{1,2},{2,3},{3,0},{4,5},{5,6},{6,7},{7,4},
-                            {0,4},{1,5},{2,6},{3,7} };
-            std::vector<glm::vec3> lines;
-            for (auto& ed : e) { lines.push_back(c[ed[0]]); lines.push_back(c[ed[1]]); }
-            drawDebugLines(lines, (Projection * View * Model), glm::vec3(0, 1, 0));   // verde
-        }
+            // objectColor ahora es vec4 → incluye alpha
+            glUniform4f(ObjectColorID, obj->diffuseColor.r,
+                obj->diffuseColor.g,
+                obj->diffuseColor.b,
+                obj->alpha);
 
-        if (obj->showNormals) {
-            std::vector<glm::vec3> lines;
-            float len = 0.15f;
-            for (const auto& v : obj->mesh->getCPUVertices()) {
-                lines.push_back(v.position);
-                lines.push_back(v.position + v.normal * len);   // en LOCAL, no mundo
+            glUniform3f(LightDirID, -0.5f, -1.0f, -0.3f); // dirección (se normaliza en el shader)
+            glUniform3f(LightColorID, 1.0f, 1.0f, 1.0f); // o el color que quieran
+            glUniform3f(AmbientID, 0.3f, 0.3f, 0.3f);
+
+            if (obj->wireframe) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
-            drawDebugLines(lines, (Projection * View * Model), glm::vec3(1, 1, 0));     // amarillo
-        }
-
-        obj->mesh->draw();
-
-        if (obj->selectedTriangleId >= 0 || obj->selectedSubMesh >= 0) {
-            //Dibujamos los objetos seleccionados
-            glUseProgram(debugProgram);
-
-            glm::mat4 MVP = Projection * View * Model;
-            glUniformMatrix4fv(debugMvpID, 1, GL_FALSE, &MVP[0][0]);
-            glUniform3f(debugColorID, 1.0f, 0.5f, 0.0f);   // pintamos de naranja
-
-            glDisable(GL_DEPTH_TEST); // desactivamos depthtest para que se dibujo encima si o si
-            //bindeamos su vao y dibujamos
-            glBindVertexArray(obj->mesh->getVAO());
-
-            if (obj->selectedTriangleId >= 0) {
-                // Un solo triángulo
-                glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(obj->selectedTriangleId * 3 * sizeof(uint32_t)));
-            }
-            else if (obj->selectedSubMesh >= 0) {
-                // todo el submesh
-                const SubMesh& sub = obj->mesh->getSubMeshes()[obj->selectedSubMesh];
-                glDrawElements(GL_TRIANGLES, sub.indexCount, GL_UNSIGNED_INT, (void*)(sub.indexOffset * sizeof(uint32_t)));
+            if (obj->showVertices) {
+                glPointSize(6.0f);
+                glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);   // o usar glDrawArrays(GL_POINTS)
             }
 
-            //desbindeamos el vao, activamos depth test y el shaderProgram
-            glBindVertexArray(0);
-            glEnable(GL_DEPTH_TEST);
-            glUseProgram(shaderProgram);
-        }
+            if (obj->showBBox) {
+                glm::vec3 mn = obj->mesh->getBBoxMin();
+                glm::vec3 mx = obj->mesh->getBBoxMax();
+                glm::vec3 c[8] = {
+                    {mn.x,mn.y,mn.z},{mx.x,mn.y,mn.z},{mx.x,mx.y,mn.z},{mn.x,mx.y,mn.z},
+                    {mn.x,mn.y,mx.z},{mx.x,mn.y,mx.z},{mx.x,mx.y,mx.z},{mn.x,mx.y,mx.z}
+                };
+                int e[12][2] = { {0,1},{1,2},{2,3},{3,0},{4,5},{5,6},{6,7},{7,4},
+                                {0,4},{1,5},{2,6},{3,7} };
+                std::vector<glm::vec3> lines;
+                for (auto& ed : e) { lines.push_back(c[ed[0]]); lines.push_back(c[ed[1]]); }
+                drawDebugLines(lines, (Projection * View * Model), glm::vec3(0, 1, 0));   // verde
+            }
 
-        if (obj->wireframe || obj->showVertices) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            if (obj->showNormals) {
+                std::vector<glm::vec3> lines;
+                float len = 0.15f;
+                for (const auto& v : obj->mesh->getCPUVertices()) {
+                    lines.push_back(v.position);
+                    lines.push_back(v.position + v.normal * len);   // en LOCAL, no mundo
+                }
+                drawDebugLines(lines, (Projection * View * Model), glm::vec3(1, 1, 0));     // amarillo
+            }
+
+            obj->mesh->draw();
+
+            if (obj->selectedTriangleId >= 0 || obj->selectedSubMesh >= 0) {
+                //Dibujamos los objetos seleccionados
+                glUseProgram(debugProgram);
+
+                glm::mat4 MVP = Projection * View * Model;
+                glUniformMatrix4fv(debugMvpID, 1, GL_FALSE, &MVP[0][0]);
+                glUniform3f(debugColorID, 1.0f, 0.5f, 0.0f);   // pintamos de naranja
+
+                glDisable(GL_DEPTH_TEST); // desactivamos depthtest para que se dibujo encima si o si
+                //bindeamos su vao y dibujamos
+                glBindVertexArray(obj->mesh->getVAO());
+
+                if (obj->selectedTriangleId >= 0) {
+                    // Un solo triángulo
+                    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(obj->selectedTriangleId * 3 * sizeof(uint32_t)));
+                }
+                else if (obj->selectedSubMesh >= 0) {
+                    // todo el submesh
+                    const SubMesh& sub = obj->mesh->getSubMeshes()[obj->selectedSubMesh];
+                    glDrawElements(GL_TRIANGLES, sub.indexCount, GL_UNSIGNED_INT, (void*)(sub.indexOffset * sizeof(uint32_t)));
+                }
+
+                //desbindeamos el vao, activamos depth test y el shaderProgram
+                glBindVertexArray(0);
+                glEnable(GL_DEPTH_TEST);
+                glUseProgram(shaderProgram);
+            }
+
+            if (obj->wireframe || obj->showVertices) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            }
         }
     }
+    glDepthMask(GL_TRUE);
+
 }
 
 //Esta funcion es para dibujar las lineas usando los debug shader para las normales y la bounding box
@@ -244,6 +265,8 @@ void Renderer::renderForPicking(Scene* scene) {
     // bindeamos el fbo
     glBindFramebuffer(GL_FRAMEBUFFER, pickingFbo);
     glViewport(0, 0, pickingWidth, pickingHeight);
+
+    glDisable(GL_BLEND);
 
     //limpiamos la pantalla, un objeto no puede ser 0.0f, es el color de no selección
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
