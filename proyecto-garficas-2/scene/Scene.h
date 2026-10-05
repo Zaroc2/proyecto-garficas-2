@@ -16,8 +16,12 @@ public:
     bool depthTestEnabled = true;
     bool backFaceCullingEnabled = true;
 
+    int selectedObjId = -1;
+
     Object* addObject(std::unique_ptr<Object> obj);
     void    removeObject(uint32_t id);
     void    clear();
     Object* findById(uint32_t id);
+    Object* getSelectedObject();
+    void selectObj(uint32_t id);
 };

@@ -13,6 +13,10 @@
 #include "io/ModelLoader.h"
 #include "core/Application.h"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 using namespace std;
 
 int main()
@@ -21,6 +25,18 @@ int main()
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // IF using Docking Branch
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(window, true);          // Second param install_callback=true will install GLFW callbacks and chain to existing ones.
+    ImGui_ImplOpenGL3_Init();
 
     MeshManager meshManager;
 
@@ -74,7 +90,9 @@ int main()
     piramid->wireframe = false;
     piramid->showBBox = false;
     piramid->showNormals = true;
-    scene->addObject(std::move(piramid));
+    Object* p = scene->addObject(std::move(piramid));
+
+    scene->selectedObjId = p->id;
 
     // Renderer
     Renderer renderer;
@@ -84,6 +102,7 @@ int main()
 
     float aspectRatio = WINDOW_WIDTH / (float)WINDOW_HEIGHT;
     do {
+        glfwPollEvents();
 		app->run(window, scene);
         // Animación
         scene->findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
@@ -101,10 +120,17 @@ int main()
         // Render
         renderer.renderScene(scene, aspectRatio);
 
+        // Rendering
+		// (Your code clears your framebuffer, renders your other stuff etc.)
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        // (Your code calls glfwSwapBuffers() etc.)glfwPollEvents();
         glfwSwapBuffers(window);
-        glfwPollEvents();
     } while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
         glfwWindowShouldClose(window) == 0);
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     return 0;
 }

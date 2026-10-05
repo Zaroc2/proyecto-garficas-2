@@ -25,3 +25,16 @@ Object* Scene::findById(uint32_t id) {
 	}
 	return nullptr;
 }
+
+Object* Scene::getSelectedObject() {
+	for (const auto& obj : objects) {
+		if (obj->id == selectedObjId) {
+			return obj.get();
+		}
+	}
+	return nullptr;
+}
+
+void Scene::selectObj(uint32_t id) {
+	selectedObjId = id;
+}
