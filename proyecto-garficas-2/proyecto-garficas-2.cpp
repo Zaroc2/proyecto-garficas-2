@@ -126,7 +126,7 @@ int main()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         // (Your code calls glfwSwapBuffers() etc.)glfwPollEvents();
         glfwSwapBuffers(window);
-    } while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+    } while (glfwGetKey(window, GLFW_KEY_DELETE) != GLFW_PRESS &&
         glfwWindowShouldClose(window) == 0);
 
     ImGui_ImplOpenGL3_Shutdown();
