@@ -52,6 +52,10 @@ int main()
     if (loadOBJ("../../../../assets/models/nrt.obj", "../../../../assets/models/", loaded)) {
         Mesh* loadedMesh = meshManager.getOrLoadModel(100, loaded.vertices, loaded.indices);
 
+        for(int i=0; i < loaded.subMeshes.size(); i++){
+            loadedMesh->addSubMesh(loaded.subMeshes.at(i));
+        }
+
         std::unique_ptr<Object> importedObj = std::make_unique<Object>();
         importedObj->mesh = loadedMesh;
         importedObj->name = "modelo_cargado";
@@ -79,6 +83,7 @@ int main()
     cube->wireframe = false;
     cube->showBBox = false;
     cube->showNormals = true;
+    cube->alpha = 0.5f;
     scene->addObject(std::move(cube));
 
     // Pirámide azul
@@ -92,7 +97,7 @@ int main()
     piramid->showNormals = true;
     Object* p = scene->addObject(std::move(piramid));
 
-    scene->selectedObjId = p->id;
+    //scene->selectedObjId = p->id;
 
     // Renderer
     Renderer renderer;
@@ -104,29 +109,64 @@ int main()
     float aspectRatio = WINDOW_WIDTH / (float)WINDOW_HEIGHT;
     do {
         glfwPollEvents();
-		app->run(window, scene);
-        // Animación
-        scene->findById(1)->transform.rotation.y = 100.0f * (float)glfwGetTime();
-        scene->findById(2)->transform.rotation.z = 100.0f * (float)glfwGetTime();
+		app->run(window, scene, &meshManager);
 
-        float b = 0.5f + 0.5f * sinf((float)glfwGetTime());   // oscila entre 0 y 1
-        scene->findById(1)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
-        scene->findById(1)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
-        scene->findById(2)->diffuseColor = glm::vec3(b, 0.4f, 0.4f);
-        scene->findById(2)->diffuseColor = glm::vec3(1.0f, b, 0.4f);
-        scene->findById(3)->diffuseColor = glm::vec3(1.0f, 0.4f, b);
-        scene->findById(3)->diffuseColor = glm::vec3(b, 0.1f, 0.4f);
+        // Calcular aspect ratio actual por si hubo resize
+        int fbW, fbH;
+        glfwGetFramebufferSize(window, &fbW, &fbH);
+        float aspectRatio = fbW / (float)fbH;
+
+        static bool mouseWasPressed = false;
+        bool mousePressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+
+
+        if (mousePressed && !mouseWasPressed && app->selectionMode == SELECT && !ImGui::GetIO().WantCaptureMouse) {
+            double mx, my;
+            glfwGetCursorPos(window, &mx, &my);
+            renderer.renderForPicking(scene);
+            PickingResult r = renderer.readPixel((int)mx, (int)my);
+
+            //Limpiamos la anterior selección si había
+            for (int i = 0; i < scene->objects.size();i++) {
+                scene->objects[i]->selectedSubMesh = -1;
+                scene->objects[i]->selectedTriangleId = -1;
+            }
+
+            scene->selectObj(r.objectId);
+
+            // Guardamos el triángulo en el objeto
+            if (r.objectId != 0) {
+                Object* selectedObj = scene->findById(r.objectId);
+                // buscamos en qué submesh cae para asig
+                uint32_t triStart = r.triangleId * 3;
+                int subMeshIdx = -1;
+                const std::vector<SubMesh> subs = selectedObj->mesh->getSubMeshes();
+                for (size_t i = 0; i < subs.size(); ++i) {
+                    if (triStart >= subs[i].indexOffset && triStart < subs[i].indexOffset + subs[i].indexCount) {
+                        subMeshIdx = (int)i;
+                        break;
+                    }
+                }
+
+                // Aplicar según el modo
+                switch (scene->selectionMode) {
+                case SelectionMode::GLOBAL:
+                    // nada extra: solo el objeto entero
+                    break;
+                case SelectionMode::LOCAL:
+                    selectedObj->selectedSubMesh = subMeshIdx;
+                    break;
+                case SelectionMode::TRIANGLE:
+                    selectedObj->selectedTriangleId = (int)r.triangleId;
+                    break;
+                }
+            }
+        }
+        mouseWasPressed = mousePressed;
 
 
         // Render
         renderer.renderScene(scene, aspectRatio);
-
-        // PRUEBA TEMPORAL: con la tecla P, imprimir el ID del centro de la pantalla
-        if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            renderer.renderForPicking(scene);
-            PickingResult r = renderer.readPixel(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2);
-            printf("Picking centro: objectId=%u, triangleId=%u\n", r.objectId, r.triangleId);
-        }
 
         // Rendering
 		// (Your code clears your framebuffer, renders your other stuff etc.)

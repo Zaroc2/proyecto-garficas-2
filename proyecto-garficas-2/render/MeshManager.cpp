@@ -235,6 +235,12 @@ Mesh* MeshManager::getCube() {
         std::vector<uint32_t> indices;
         buildCube(vertices, indices);
         cube = std::unique_ptr<Mesh>(new Mesh(vertices, indices));
+
+        //Submesh de 2 en 2
+        const char* names[6] = { "front", "back", "right", "left", "top", "bottom" };
+        for (int i = 0; i < 6; ++i) {
+            cube->addSubMesh({ (uint32_t)(i * 6), 6, names[i] });
+        }
     }
     return cube.get();
 }
@@ -245,6 +251,9 @@ Mesh* MeshManager::getSphere() {
         std::vector<uint32_t> indices;
         buildSphere(vertices, indices);
         sphere = std::unique_ptr<Mesh>(new Mesh(vertices, indices));
+
+        //submesh es toda la esfera
+        sphere->addSubMesh({ 0, (uint32_t)indices.size(), "esfera" });
     }
     return sphere.get();
 }
@@ -255,6 +264,11 @@ Mesh* MeshManager::getPyramid() {
         std::vector<uint32_t> indices;
         buildPyramid(vertices, indices);
         pyramid = std::unique_ptr<Mesh>(new Mesh(vertices, indices));
+
+        //submeshes de 3 en 3
+        for (int i = 0; i < 6; ++i) {
+            pyramid->addSubMesh({ (uint32_t)(i * 3), 3, "tri_" + std::to_string(i) });
+        }
     }
     return pyramid.get();
 }
@@ -265,6 +279,22 @@ Mesh* MeshManager::getCylinder() {
         std::vector<uint32_t> indices;
         buildCylinder(vertices, indices);
         cylinder = std::unique_ptr<Mesh>(new Mesh(vertices, indices));
+
+        const int segments = 24;
+
+        // paredes 6 segmentos por cara
+        uint32_t lateralCount = segments * 6;
+        cylinder->addSubMesh({ 0, lateralCount, "lateral" });
+
+        // tapa superior  3 triangulos por segmento
+        uint32_t topStart = lateralCount;
+        uint32_t topCount = segments * 3;
+        cylinder->addSubMesh({ topStart, topCount, "tapa_superior" });
+
+        // lo mismo para la tapa inferior
+        uint32_t botStart = topStart + topCount;
+        uint32_t botCount = segments * 3;
+        cylinder->addSubMesh({ botStart, botCount, "tapa_inferior" });
     }
     return cylinder.get();
 }
