@@ -97,7 +97,7 @@ int main()
     piramid->showNormals = true;
     Object* p = scene->addObject(std::move(piramid));
 
-    scene->selectedObjId = p->id;
+    //scene->selectedObjId = p->id;
 
     // Renderer
     Renderer renderer;
@@ -110,6 +110,12 @@ int main()
     do {
         glfwPollEvents();
 		app->run(window, scene);
+
+        // Calcular aspect ratio actual por si hubo resize
+        int fbW, fbH;
+        glfwGetFramebufferSize(window, &fbW, &fbH);
+        float aspectRatio = fbW / (float)fbH;
+
         static bool mouseWasPressed = false;
         bool mousePressed = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 

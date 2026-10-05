@@ -266,6 +266,25 @@ void Renderer::drawDebugLines(const std::vector<glm::vec3>& pts,
 void Renderer::renderForPicking(Scene* scene) {
     // bindeamos el fbo
     glBindFramebuffer(GL_FRAMEBUFFER, pickingFbo);
+
+    //Verificamos el tamaño de la pantalla por si hubo resize
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+    int width = vp[2];
+    int height = vp[3];
+
+    // Si el FBO no tiene ese tamaño, redimensionarlo
+    if (width != pickingWidth || height != pickingHeight) {
+        pickingWidth = width;
+        pickingHeight = height;
+
+        glBindTexture(GL_TEXTURE_2D, pickingColorTex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32UI, width, height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, nullptr);
+
+        glBindRenderbuffer(GL_RENDERBUFFER, pickingDepthRbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+    }
+
     glViewport(0, 0, pickingWidth, pickingHeight);
 
     glDisable(GL_BLEND);
