@@ -67,6 +67,9 @@ int main()
         importedObj->wireframe = false;
         importedObj->showBBox = false;
         importedObj->showNormals = false;
+        importedObj->type = MODEL_TYPE::CUSTOM;
+        importedObj->objPath = "../../../../assets/models/nrt.obj";
+        importedObj->mltPath = "../../../../assets/models/";
         scene->addObject(std::move(importedObj));
     }
     else {
@@ -84,6 +87,7 @@ int main()
     cube->showBBox = false;
     cube->showNormals = true;
     cube->alpha = 0.5f;
+    cube->type = MODEL_TYPE::CUBE;
     scene->addObject(std::move(cube));
 
     // Pirámide azul
@@ -95,6 +99,7 @@ int main()
     piramid->wireframe = false;
     piramid->showBBox = false;
     piramid->showNormals = true;
+    piramid->type = MODEL_TYPE::PYRAMID;
     Object* p = scene->addObject(std::move(piramid));
 
     //scene->selectedObjId = p->id;
@@ -105,6 +110,7 @@ int main()
     renderer.initPicking(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	Application* app = new Application();
+    app->meshManager = &meshManager;
 
     float aspectRatio = WINDOW_WIDTH / (float)WINDOW_HEIGHT;
     do {
