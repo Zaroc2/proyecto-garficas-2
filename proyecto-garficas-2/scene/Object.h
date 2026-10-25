@@ -4,15 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <render/Mesh.h>
+#include <scene/Transform.h>
 using namespace glm;
-
-// src/scene/Object.h
-struct Transform {
-    glm::vec3 position = { 0,0,0 };
-    glm::vec3 rotation = { 0,0,0 };   // Euler en grados
-    glm::vec3 scale = { 1,1,1 };
-    glm::mat4 getModelMatrix();
-};
 
 enum MODEL_TYPE { CUBE, SPHERE, PYRAMID, CUSTOM, CYLINDER };
 
@@ -20,6 +13,7 @@ struct Object {
     unsigned int id = 0;          // ID único para color picking
     std::string name;
     Mesh* mesh = nullptr;                   // puntero al mesh (compartido o propio)
+    std::vector<SubMesh> subMeshes;
     Transform transform;
     glm::vec3 diffuseColor = { 0.7f, 0.7f, 0.7f };// Kd del .mtl
     MODEL_TYPE type = MODEL_TYPE::CUSTOM;

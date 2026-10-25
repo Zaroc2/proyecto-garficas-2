@@ -4,6 +4,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cstdio>
 
+static glm::vec3 cameraPos;
+
+static bool compareDistance(const std::unique_ptr<Object>& a, const std::unique_ptr<Object>& b) {
+    float distA = glm::distance(a->transform.position, cameraPos);
+    float distB = glm::distance(b->transform.position, cameraPos);
+    return distA > distB; // Más lejos primero
+}
+//Variable y función estática y global para poder ordenarlos por orden respecto a la posición de la cámara con sort
+
+
 void Renderer::init() {
     //Se cargan los sahders
     shaderProgram = LoadShaders("../../../../assets/shaders/base.vert",
@@ -53,6 +63,7 @@ void Renderer::initPicking(int width, int height) {
     pickingViewID = glGetUniformLocation(pickingProgram, "view");
     pickingProjectionID = glGetUniformLocation(pickingProgram, "projection");
     pickingObjectIdID = glGetUniformLocation(pickingProgram, "objectId");
+    pickingBaseTriangleID = glGetUniformLocation(pickingProgram, "baseTriangle");
 
     // inicializamos el buffer
     glGenFramebuffers(1, &pickingFbo);
@@ -122,10 +133,13 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
     else
         glDisable(GL_DEPTH_TEST);
 
-    if (scene->backFaceCullingEnabled)
+    if (scene->backFaceCullingEnabled) {
         glEnable(GL_CULL_FACE);
-    else
+        glCullFace(GL_BACK);       // Cullear las caras traseras
+    }
+    else {
         glDisable(GL_CULL_FACE);
+    }
 
     if (scene->blendingEnabled) {
         //Activamos blend, glBlendFunc define color_final = alpha_nuevo * color_nuevo + (1 - alpha_nuevo) * color_detras
@@ -142,6 +156,10 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
 
     // Dibujar cada objeto
     glUseProgram(shaderProgram);
+
+    //Tenemos que ordenar los objetos transparentes antes de dibujarlos:
+    cameraPos = scene->camera->position;
+    std::sort(scene->objects.begin(), scene->objects.end(), compareDistance);
 
     for (int pass = 0; pass < 2; ++pass) {//Hacemos dos pasadas, una para los objetos opacos una para los transparentes
         if (pass == 1) 
@@ -203,13 +221,56 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
                 drawDebugLines(lines, (Projection * View * Model), glm::vec3(1, 1, 0));     // amarillo
             }
 
-            obj->mesh->draw();
+            //obj->mesh->draw(); Ya no dibujamos al objeto porque dibujamos por submeshes
+
+            const std::vector<SubMesh>& subMeshes = obj->subMeshes;
+
+            if (subMeshes.empty()) {
+                // Si no tiene sub-meshes, se dibuja como antes
+                obj->mesh->draw();
+            }
+            else {
+                for (int i = 0; i < subMeshes.size(); ++i) {
+                    // matriz final = transform del objeto * transform del submesh
+                    glm::mat4 subLocalMatrix = subMeshes[i].transform.getModelMatrix();
+                    glm::mat4 finalModel = Model * subLocalMatrix;
+
+                    // Le pasamos la nueva matriz al shader principal
+                    glUniformMatrix4fv(ModelID, 1, GL_FALSE, &finalModel[0][0]);
+
+                    glBindVertexArray(obj->mesh->getVAO());
+                    glDrawElements(GL_TRIANGLES, subMeshes[i].indexCount, GL_UNSIGNED_INT, (void*)(subMeshes[i].indexOffset * sizeof(uint32_t)));
+                    glBindVertexArray(0);
+                }
+            }
 
             if (obj->selectedTriangleId >= 0 || obj->selectedSubMesh >= 0) {
-                //Dibujamos los objetos seleccionados
+                //Dibujamos los submeshes o triángulos
                 glUseProgram(debugProgram);
 
-                glm::mat4 MVP = Projection * View * Model;
+
+                glm::mat4 selectedModel = Model;
+                int subIdx = obj->selectedSubMesh;
+
+                // buscamos a qué sub-mesh pertenece el triángulo
+                if (subIdx < 0 && obj->selectedTriangleId >= 0) {
+                    uint32_t triStart = obj->selectedTriangleId * 3;
+                    for (size_t k = 0; k < obj->subMeshes.size(); ++k) {
+                        if (triStart >= obj->subMeshes[k].indexOffset &&
+                            triStart < obj->subMeshes[k].indexOffset + obj->subMeshes[k].indexCount) {
+                            subIdx = (int)k;
+                            break;
+                        }
+                    }
+                }
+
+                // Multiplicamos por la matriz del sub-mesh
+                if (subIdx >= 0 && subIdx < obj->subMeshes.size()) {
+                    selectedModel = Model * obj->subMeshes[subIdx].transform.getModelMatrix();
+                }
+
+                glm::mat4 MVP = Projection * View * selectedModel;
+
                 glUniformMatrix4fv(debugMvpID, 1, GL_FALSE, &MVP[0][0]);
                 glUniform3f(debugColorID, 1.0f, 0.5f, 0.0f);   // pintamos de naranja
 
@@ -224,7 +285,7 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
                 }
                 else if (obj->selectedSubMesh >= 0) {
                     // todo el submesh
-                    const SubMesh& sub = obj->mesh->getSubMeshes()[obj->selectedSubMesh];
+                    const SubMesh& sub = obj->subMeshes[obj->selectedSubMesh];
                     glDrawElements(GL_TRIANGLES, sub.indexCount, GL_UNSIGNED_INT, (void*)(sub.indexOffset * sizeof(uint32_t)));
                 }
 
@@ -321,14 +382,37 @@ void Renderer::renderForPicking(Scene* scene) {
         if (obj->mesh == nullptr)
             continue;
 
-        //enviamos la matriz model como uniform
-        glm::mat4 Model = obj->transform.getModelMatrix();
-        glUniformMatrix4fv(pickingModelID, 1, GL_FALSE, &Model[0][0]);
-
         // eniamos el id del objeto como uint por opengl para que lo reciba el frag shader
         glUniform1ui(pickingObjectIdID, (GLuint)obj->id);
 
-        obj->mesh->draw();
+
+        //enviamos la matriz model como uniform
+        glm::mat4 Model = obj->transform.getModelMatrix();
+
+        const std::vector<SubMesh>& subMeshes = obj->subMeshes;
+
+
+        if (subMeshes.size() < 1) { //Si tieneun solo subMesh o no tiene, es el objeto completo, si no por submeshes para poder escogerlos en su posición
+			glUniform1i(pickingBaseTriangleID, 0); //Enviamos el offset en 0 si no hay submeshes
+            glUniformMatrix4fv(pickingModelID, 1, GL_FALSE, &Model[0][0]);
+            obj->mesh->draw();
+        }
+        else {
+            for (int j = 0; j < subMeshes.size(); ++j) {
+
+                // Calculamos cuántos triángulos hay antes de este sub-mesh
+                int baseTri = subMeshes[j].indexOffset / 3;
+                glUniform1i(pickingBaseTriangleID, baseTri);
+
+
+                glm::mat4 finalModel = Model * subMeshes[j].transform.getModelMatrix();
+                glUniformMatrix4fv(pickingModelID, 1, GL_FALSE, &finalModel[0][0]);
+
+                glBindVertexArray(obj->mesh->getVAO());
+                glDrawElements(GL_TRIANGLES, subMeshes[j].indexCount, GL_UNSIGNED_INT, (void*)(subMeshes[j].indexOffset * sizeof(uint32_t)));
+                glBindVertexArray(0);
+            }
+        }
     }
 
     //desbindeamos y y volvemos al shader del programa

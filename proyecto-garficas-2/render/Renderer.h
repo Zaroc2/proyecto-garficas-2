@@ -2,6 +2,7 @@
 
 #include <glad/gl.h>
 #include <scene/Scene.h>
+#include <algorithm>
 
 struct PickingResult {
     uint32_t objectId;    // 0 si no hay nada
@@ -40,6 +41,7 @@ private:
     GLuint pickingFbo = 0;          //el framebuffer object
     GLuint pickingColorTex = 0;     //la texture donde se guardan los IDs.
     GLuint pickingDepthRbo = 0;
+    GLuint pickingBaseTriangleID = 0; //Offset para los triángulso bases a la hora de hacer picking en submeshes
     //tamaño del FBO
     int pickingWidth = 0;
     int pickingHeight = 0;

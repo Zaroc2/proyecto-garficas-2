@@ -47,22 +47,23 @@ int main()
     scene->camera->updateFromMouse(0, 0);
 
     // Cargar un modelo .obj
-    LoadedModel loaded;
+    LoadedModel loadedNRT,loadedSubMeshes;
 
-    if (loadOBJ("../../../../assets/models/nrt.obj", "../../../../assets/models/", loaded)) {
-        Mesh* loadedMesh = meshManager.getOrLoadModel(100, loaded.vertices, loaded.indices);
+    if (loadOBJ("../../../../assets/models/nrt.obj", "../../../../assets/models/", loadedNRT)) {
+        Mesh* loadedMesh = meshManager.getOrLoadModel(100, loadedNRT.vertices, loadedNRT.indices);
 
-        for(int i=0; i < loaded.subMeshes.size(); i++){
-            loadedMesh->addSubMesh(loaded.subMeshes.at(i));
+        for(int i=0; i < loadedNRT.subMeshes.size(); i++){
+            loadedMesh->addSubMesh(loadedNRT.subMeshes.at(i));
         }
 
         std::unique_ptr<Object> importedObj = std::make_unique<Object>();
         importedObj->mesh = loadedMesh;
-        importedObj->name = "modelo_cargado";
+        importedObj->subMeshes = loadedMesh->getSubMeshes();
+        importedObj->name = "modelo_NRT_cargado";
         importedObj->transform.position = glm::vec3(-3.0f, 0.0f, 0.0f);  // al lado de los otros
 		importedObj->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 		importedObj->transform.rotation = glm::vec3(270.0f, -10.0f, 60.0f); // rotación inicial
-        importedObj->diffuseColor = loaded.diffuseColor;
+        importedObj->diffuseColor = loadedNRT.diffuseColor;
         importedObj->showVertices = false;
         importedObj->wireframe = false;
         importedObj->showBBox = false;
@@ -71,15 +72,45 @@ int main()
         importedObj->objPath = "../../../../assets/models/nrt.obj";
         importedObj->mltPath = "../../../../assets/models/";
         scene->addObject(std::move(importedObj));
+
     }
     else {
-        printf("No se pudo cargar el modelo\n");
+        printf("No se pudo cargar el modelo NRT\n");
+    }
+
+    if (true && loadOBJ("../../../../assets/models/carritoFiuFiu.obj", "../../../../assets/models/", loadedSubMeshes)) {
+        Mesh* loadedMesh = meshManager.getOrLoadModel(101,loadedSubMeshes.vertices, loadedSubMeshes.indices);
+
+        for (int i = 0; i < loadedSubMeshes.subMeshes.size(); i++) {
+            loadedMesh->addSubMesh(loadedSubMeshes.subMeshes.at(i));
+        }
+
+        std::unique_ptr<Object> importedObj = std::make_unique<Object>();
+        importedObj->mesh = loadedMesh;
+        importedObj->subMeshes = loadedMesh->getSubMeshes();
+        importedObj->name = "modelo_carritoFiuFiu_cargado";
+        importedObj->transform.position = glm::vec3(0.0f, 0.0f, 3.0f);  // perpendicular
+        importedObj->transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
+        importedObj->diffuseColor = loadedSubMeshes.diffuseColor;
+        importedObj->showVertices = false;
+        importedObj->wireframe = false;
+        importedObj->showBBox = false;
+        importedObj->showNormals = false;
+        importedObj->type = MODEL_TYPE::CUSTOM;
+        importedObj->objPath = "../../../../assets/models/carritoFiuFiu.obj";
+        importedObj->mltPath = "../../../../assets/models/";
+        scene->addObject(std::move(importedObj));
+
+    }
+    else {
+        printf("No se pudo cargar el modelo carritoFiuFiu\n");
     }
 
 
     // Cubo rojo
     unique_ptr<Object> cube = make_unique<Object>();
     cube->mesh = meshManager.getCube();
+    cube->subMeshes = cube->mesh->getSubMeshes();
     cube->transform.scale = glm::vec3(2.0f, 2.0f, 2.0f);
     cube->diffuseColor = glm::vec3(1.0f, 0.4f, 0.4f);
     cube->showVertices = false;
@@ -93,6 +124,7 @@ int main()
     // Pirámide azul
     unique_ptr<Object> piramid = make_unique<Object>();
     piramid->mesh = meshManager.getPyramid();
+	piramid->subMeshes = piramid->mesh->getSubMeshes();
     piramid->transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
     piramid->diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
     piramid->showVertices = false;
@@ -146,7 +178,7 @@ int main()
                 // buscamos en qué submesh cae para asig
                 uint32_t triStart = r.triangleId * 3;
                 int subMeshIdx = -1;
-                const std::vector<SubMesh> subs = selectedObj->mesh->getSubMeshes();
+                const std::vector<SubMesh>& subs = selectedObj->subMeshes;
                 for (size_t i = 0; i < subs.size(); ++i) {
                     if (triStart >= subs[i].indexOffset && triStart < subs[i].indexOffset + subs[i].indexCount) {
                         subMeshIdx = (int)i;

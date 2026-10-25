@@ -42,7 +42,7 @@ set(PROJECT_HEADERS
     # ui/UI.h
 )
 
-add_executable (proyecto-garficas-2 ${PROJECT_SOURCES} ${PROJECT_HEADERS} "render/MeshManager.h" "render/MeshManager.cpp")
+add_executable (proyecto-garficas-2 ${PROJECT_SOURCES} ${PROJECT_HEADERS} "render/MeshManager.h" "render/MeshManager.cpp" "scene/Transform.h")
 
 # add_executable (proyecto-garficas-2 "proyecto-garficas-2.cpp" "proyecto-garficas-2.h" "core/window.cpp" "core/window.h" "scene/Scene.h" "scene/Scene.cpp" "scene/Object.h" "scene/Object.cpp" "scene/Camera.h" "scene/Camera.cpp")
 

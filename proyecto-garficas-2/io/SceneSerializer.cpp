@@ -79,6 +79,9 @@ static void linkMesh(Object* o, MeshManager* manager) {
                   << ") id=" << o->id << ", queda sin mesh." << std::endl;
         break;
     }
+    if (o->mesh) {
+        o->subMeshes = o->mesh->getSubMeshes();
+    }
 }
 
 // Serializa un Object a json (solo datos; el mesh se reconecta al cargar).
