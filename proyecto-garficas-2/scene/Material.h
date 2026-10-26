@@ -7,4 +7,5 @@ struct Material {
     float alpha = 1.0f;
     GLuint textureID = 0;       // ID de la textura en OpenGL, 0 por defecto
     bool useTexture = false;
+    float shininess = 32.0f;
 };

@@ -134,6 +134,32 @@ int main()
     piramid->type = MODEL_TYPE::PYRAMID;
     Object* p = scene->addObject(std::move(piramid));
 
+    //luz Direccional (sol)
+    Light sun;
+    sun.type = LightType::DIRECTIONAL;
+    sun.direction = glm::vec3(-0.5f, -1.0f, -0.3f);
+    sun.color = glm::vec3(1.0f, 0.95f, 0.8f); // Luz cálida
+    sun.intensity = 0.8f;
+    scene->lights.push_back(sun);
+
+    //luz Point 
+    Light bulb;
+    bulb.type = LightType::POINT;
+    bulb.position = glm::vec3(0.0f, 2.0f, 0.0f);
+    bulb.color = glm::vec3(1.0f, 0.2f, 0.2f); // Rojo
+    bulb.intensity = 1.0f;
+    scene->lights.push_back(bulb);
+
+    //luz Spot (Linterna azul)
+    Light flashlight;
+    flashlight.type = LightType::SPOT;
+    flashlight.position = glm::vec3(3.0f, 3.0f, 3.0f);
+    flashlight.direction = glm::vec3(-1.0f, -1.0f, -1.0f);
+    flashlight.color = glm::vec3(0.2f, 0.5f, 1.0f); // Azul
+    flashlight.intensity = 2.0f;
+    flashlight.cutOff = glm::cos(glm::radians(12.5f));
+    flashlight.outerCutOff = glm::cos(glm::radians(20.0f));
+    scene->lights.push_back(flashlight);
     //scene->selectedObjId = p->id;
 
     // Renderer

@@ -20,6 +20,7 @@ public:
     bool backFaceCullingEnabled = true;
     bool blendingEnabled = true;
     std::vector<Light> lights;
+    int shadingMode = 2; // 0=Flat, 1=Gouraud, 2=Blinn-Phong
 
     int selectedObjId = -1;
     SelectionMode selectionMode = SelectionMode::GLOBAL;

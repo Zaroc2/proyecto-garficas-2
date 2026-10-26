@@ -49,5 +49,23 @@ private:
     int pickingWidth = 0;
     int pickingHeight = 0;
 
+    //Para las luces
+    GLuint numLightsID;
+    GLuint viewPosID;       // Posición de la cámara para el brillo especular
+    GLuint shininessID;     // Brillo del material
+    GLuint shadingModeID;   // 0=Flat, 1=Gouraud(Lambert), 2=Blinn-Phong
+
+    // Arrays para soportar hasta 8 luces (MAX_LIGHTS)
+    GLuint lightTypeID[8];
+    GLuint lightPosID[8];
+    GLuint lightDirID[8];
+    GLuint lightColorID[8];
+    GLuint lightIntensityID[8];
+    GLuint lightConstantID[8];
+    GLuint lightLinearID[8];
+    GLuint lightQuadraticID[8];
+    GLuint lightCutOffID[8];
+    GLuint lightOuterCutOffID[8];
+
     void drawDebugLines(const std::vector<glm::vec3>& pts, const glm::mat4& mvp, const glm::vec3& color);
 };

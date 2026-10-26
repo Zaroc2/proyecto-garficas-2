@@ -1,6 +1,7 @@
 ﻿#include <render/Renderer.h>
 #include <render/Shader.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cstdio>
 
@@ -33,6 +34,28 @@ void Renderer::init() {
     AmbientID = glGetUniformLocation(shaderProgram, "ambientLight");
     TextureID = glGetUniformLocation(shaderProgram, "objTexture");
     UseTextureID = glGetUniformLocation(shaderProgram, "useTexture");
+
+    //Luces
+    numLightsID = glGetUniformLocation(shaderProgram, "numLights");
+    viewPosID = glGetUniformLocation(shaderProgram, "viewPos");
+    shininessID = glGetUniformLocation(shaderProgram, "shininess");
+    shadingModeID = glGetUniformLocation(shaderProgram, "currentShadingMode");
+
+    for (int i = 0; i < 8; i++) {
+        // un for para "lights[0].position", "lights[1].position", etc.
+        std::string base = "lights[" + std::to_string(i) + "].";
+
+        lightTypeID[i] = glGetUniformLocation(shaderProgram, (base + "type").c_str());
+        lightPosID[i] = glGetUniformLocation(shaderProgram, (base + "position").c_str());
+        lightDirID[i] = glGetUniformLocation(shaderProgram, (base + "direction").c_str());
+        lightColorID[i] = glGetUniformLocation(shaderProgram, (base + "color").c_str());
+        lightIntensityID[i] = glGetUniformLocation(shaderProgram, (base + "intensity").c_str());
+        lightConstantID[i] = glGetUniformLocation(shaderProgram, (base + "constant").c_str());
+        lightLinearID[i] = glGetUniformLocation(shaderProgram, (base + "linear").c_str());
+        lightQuadraticID[i] = glGetUniformLocation(shaderProgram, (base + "quadratic").c_str());
+        lightCutOffID[i] = glGetUniformLocation(shaderProgram, (base + "cutOff").c_str());
+        lightOuterCutOffID[i] = glGetUniformLocation(shaderProgram, (base + "outerCutOff").c_str());
+    }
 
     //Cargamos el vao y el vbo para el dibujo de normales y bounding boxes
     debugProgram = LoadShaders("../../../../assets/shaders/debug.vert",
@@ -163,6 +186,27 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
     cameraPos = scene->camera->position;
     std::sort(scene->objects.begin(), scene->objects.end(), compareDistance);
 
+    //Enviamos los datos de luces y cámara al shader
+    glUniform3fv(viewPosID, 1, glm::value_ptr(scene->camera->position));
+    glUniform1i(numLightsID, (int)scene->lights.size());
+    glUniform1i(shadingModeID, scene->shadingMode); // Necesitas añadir esto a tu clase Scene
+
+    for (int i = 0; i < scene->lights.size() && i < 8; i++) {
+        const Light& l = scene->lights[i];
+
+        glUniform1i(lightTypeID[i], static_cast<int>(l.type));
+        glUniform3fv(lightPosID[i], 1, glm::value_ptr(l.position));
+        glUniform3fv(lightDirID[i], 1, glm::value_ptr(l.direction));
+        glUniform3fv(lightColorID[i], 1, glm::value_ptr(l.color));
+
+        glUniform1f(lightIntensityID[i], l.intensity);
+        glUniform1f(lightConstantID[i], l.constant);
+        glUniform1f(lightLinearID[i], l.linear);
+        glUniform1f(lightQuadraticID[i], l.quadratic);
+        glUniform1f(lightCutOffID[i], l.cutOff);
+        glUniform1f(lightOuterCutOffID[i], l.outerCutOff);
+    }
+
     for (int pass = 0; pass < 2; ++pass) {//Hacemos dos pasadas, una para los objetos opacos una para los transparentes
         if (pass == 1) 
             glDepthMask(GL_FALSE);
@@ -186,6 +230,8 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
                 obj->material.diffuseColor.g,
                 obj->material.diffuseColor.b,
                 obj->material.alpha);
+            glUniform1f(shininessID, obj->material.shininess);
+
 
             if (obj->material.useTexture && obj->material.textureID != 0) {
                 glActiveTexture(GL_TEXTURE0); // Activamos la unidad de textura 0
