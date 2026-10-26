@@ -39,6 +39,7 @@ void Scene::selectObj(uint32_t id) {
 	// Limpiar el triángulo de TODOS los objetos
 	for (int i = 0; i < objects.size(); i++) {
 		objects[i]->selectedTriangleId = -1;
+		objects[i]->selectedSubMesh = -1;
 	}
 	selectedObjId = id;
 }

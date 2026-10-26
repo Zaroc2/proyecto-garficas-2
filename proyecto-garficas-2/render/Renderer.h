@@ -31,6 +31,9 @@ private:
     GLuint debugProgram = 0;
     GLuint debugVao = 0, debugVbo = 0;
     GLuint debugMvpID = 0, debugColorID = 0;
+    //Texturas
+    GLuint TextureID;     // sampler2D
+    GLuint UseTextureID;  // bool para si se esta usando o no
 
     //Para selección
     GLuint pickingProgram = 0;

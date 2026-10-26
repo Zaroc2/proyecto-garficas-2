@@ -5,7 +5,8 @@
 // añadir un triángulo calculando su normal con producto cruz
 void addTriangle(std::vector<Vertex>& vertices,
     std::vector<uint32_t>& indices,
-    glm::vec3 p0, glm::vec3 p1, glm::vec3 p2)
+    glm::vec3 p0, glm::vec3 p1, glm::vec3 p2,
+    glm::vec2 uv0, glm::vec2 uv1, glm::vec2 uv2)
 {
     glm::vec3 edge1 = p1 - p0;
     glm::vec3 edge2 = p2 - p0;
@@ -13,9 +14,9 @@ void addTriangle(std::vector<Vertex>& vertices,
 
     uint32_t base = (uint32_t)vertices.size();
 
-    Vertex v0; v0.position = p0; v0.normal = normal;
-    Vertex v1; v1.position = p1; v1.normal = normal;
-    Vertex v2; v2.position = p2; v2.normal = normal;
+    Vertex v0; v0.position = p0; v0.normal = normal; v0.texCoord = uv0;
+    Vertex v1; v1.position = p1; v1.normal = normal; v1.texCoord = uv1;
+    Vertex v2; v2.position = p2; v2.normal = normal; v2.texCoord = uv2;
 
     vertices.push_back(v0);
     vertices.push_back(v1);
@@ -33,40 +34,40 @@ void buildCube(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
     Vertex v;
 
     // Cara frontal (+Z)
-    v.position = glm::vec3(-s, -s, s); v.normal = glm::vec3(0, 0, 1); vertices.push_back(v);
-    v.position = glm::vec3(s, -s, s); v.normal = glm::vec3(0, 0, 1); vertices.push_back(v);
-    v.position = glm::vec3(s, s, s); v.normal = glm::vec3(0, 0, 1); vertices.push_back(v);
-    v.position = glm::vec3(-s, s, s); v.normal = glm::vec3(0, 0, 1); vertices.push_back(v);
+    v.position = glm::vec3(-s, -s, s); v.normal = glm::vec3(0, 0, 1); v.texCoord = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, -s, s);  v.normal = glm::vec3(0, 0, 1); v.texCoord = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, s, s);   v.normal = glm::vec3(0, 0, 1); v.texCoord = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, s, s);  v.normal = glm::vec3(0, 0, 1); v.texCoord = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
 
     // Cara trasera (-Z)
-    v.position = glm::vec3(s, -s, -s); v.normal = glm::vec3(0, 0, -1); vertices.push_back(v);
-    v.position = glm::vec3(-s, -s, -s); v.normal = glm::vec3(0, 0, -1); vertices.push_back(v);
-    v.position = glm::vec3(-s, s, -s); v.normal = glm::vec3(0, 0, -1); vertices.push_back(v);
-    v.position = glm::vec3(s, s, -s); v.normal = glm::vec3(0, 0, -1); vertices.push_back(v);
+    v.position = glm::vec3(s, -s, -s);  v.normal = glm::vec3(0, 0, -1); v.texCoord = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, -s, -s); v.normal = glm::vec3(0, 0, -1); v.texCoord = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, s, -s);  v.normal = glm::vec3(0, 0, -1); v.texCoord = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, s, -s);   v.normal = glm::vec3(0, 0, -1); v.texCoord = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
 
     // Cara derecha (+X)
-    v.position = glm::vec3(s, -s, s); v.normal = glm::vec3(1, 0, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, -s, -s); v.normal = glm::vec3(1, 0, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, s, -s); v.normal = glm::vec3(1, 0, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, s, s); v.normal = glm::vec3(1, 0, 0); vertices.push_back(v);
+    v.position = glm::vec3(s, -s, s);   v.normal = glm::vec3(1, 0, 0); v.texCoord = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, -s, -s);  v.normal = glm::vec3(1, 0, 0); v.texCoord = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, s, -s);   v.normal = glm::vec3(1, 0, 0); v.texCoord = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, s, s);    v.normal = glm::vec3(1, 0, 0); v.texCoord = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
 
     // Cara izquierda (-X)
-    v.position = glm::vec3(-s, -s, -s); v.normal = glm::vec3(-1, 0, 0); vertices.push_back(v);
-    v.position = glm::vec3(-s, -s, s); v.normal = glm::vec3(-1, 0, 0); vertices.push_back(v);
-    v.position = glm::vec3(-s, s, s); v.normal = glm::vec3(-1, 0, 0); vertices.push_back(v);
-    v.position = glm::vec3(-s, s, -s); v.normal = glm::vec3(-1, 0, 0); vertices.push_back(v);
+    v.position = glm::vec3(-s, -s, -s); v.normal = glm::vec3(-1, 0, 0); v.texCoord = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, -s, s);  v.normal = glm::vec3(-1, 0, 0); v.texCoord = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, s, s);   v.normal = glm::vec3(-1, 0, 0); v.texCoord = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, s, -s);  v.normal = glm::vec3(-1, 0, 0); v.texCoord = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
 
     // Cara superior (+Y)
-    v.position = glm::vec3(-s, s, s); v.normal = glm::vec3(0, 1, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, s, s); v.normal = glm::vec3(0, 1, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, s, -s); v.normal = glm::vec3(0, 1, 0); vertices.push_back(v);
-    v.position = glm::vec3(-s, s, -s); v.normal = glm::vec3(0, 1, 0); vertices.push_back(v);
+    v.position = glm::vec3(-s, s, s);   v.normal = glm::vec3(0, 1, 0); v.texCoord = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, s, s);    v.normal = glm::vec3(0, 1, 0); v.texCoord = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, s, -s);   v.normal = glm::vec3(0, 1, 0); v.texCoord = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, s, -s);  v.normal = glm::vec3(0, 1, 0); v.texCoord = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
 
     // Cara inferior (-Y)
-    v.position = glm::vec3(-s, -s, -s); v.normal = glm::vec3(0, -1, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, -s, -s); v.normal = glm::vec3(0, -1, 0); vertices.push_back(v);
-    v.position = glm::vec3(s, -s, s); v.normal = glm::vec3(0, -1, 0); vertices.push_back(v);
-    v.position = glm::vec3(-s, -s, s); v.normal = glm::vec3(0, -1, 0); vertices.push_back(v);
+    v.position = glm::vec3(-s, -s, -s); v.normal = glm::vec3(0, -1, 0); v.texCoord = glm::vec2(0.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, -s, -s);  v.normal = glm::vec3(0, -1, 0); v.texCoord = glm::vec2(1.0f, 0.0f); vertices.push_back(v);
+    v.position = glm::vec3(s, -s, s);   v.normal = glm::vec3(0, -1, 0); v.texCoord = glm::vec2(1.0f, 1.0f); vertices.push_back(v);
+    v.position = glm::vec3(-s, -s, s);  v.normal = glm::vec3(0, -1, 0); v.texCoord = glm::vec2(0.0f, 1.0f); vertices.push_back(v);
 
     for (uint32_t face = 0; face < 6; ++face) {
         uint32_t b = face * 4;
@@ -103,6 +104,7 @@ void buildSphere(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
             Vertex vert;
             vert.position = pos;
             vert.normal = normal;
+            vert.texCoord = glm::vec2(u, v);
             vertices.push_back(vert);
         }
     }
@@ -137,15 +139,24 @@ void buildPyramid(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
     glm::vec3 D(-b, -h, b);
     glm::vec3 apex(0.0f, h, 0.0f);
 
-    // 4 caras laterales (orden: vértice, ápice, siguiente vértice)
-    addTriangle(vertices, indices, A, apex, B);  // trasera
-    addTriangle(vertices, indices, B, apex, C);  // derecha
-    addTriangle(vertices, indices, C, apex, D);  // frontal
-    addTriangle(vertices, indices, D, apex, A);  // izquierda
+    // UVs para las caras laterales (Triángulo apuntando hacia arriba)
+    glm::vec2 uvL(0.0f, 0.0f); // Abajo Izq
+    glm::vec2 uvR(1.0f, 0.0f); // Abajo Der
+    glm::vec2 uvTop(0.5f, 1.0f); // Arriba Centro
 
-    // Base 2 triángulos
-    addTriangle(vertices, indices, A, B, C);
-    addTriangle(vertices, indices, A, C, D);
+    // UVs para la base (Cuadrado completo)
+    glm::vec2 uv00(0.0f, 0.0f); glm::vec2 uv10(1.0f, 0.0f);
+    glm::vec2 uv11(1.0f, 1.0f); glm::vec2 uv01(0.0f, 1.0f);
+
+    // 4 caras laterales
+    addTriangle(vertices, indices, A, apex, B, uvL, uvTop, uvR);
+    addTriangle(vertices, indices, B, apex, C, uvL, uvTop, uvR);
+    addTriangle(vertices, indices, C, apex, D, uvL, uvTop, uvR);
+    addTriangle(vertices, indices, D, apex, A, uvL, uvTop, uvR);
+
+    // Base (2 triángulos)
+    addTriangle(vertices, indices, A, B, C, uv00, uv10, uv11);
+    addTriangle(vertices, indices, A, C, D, uv00, uv11, uv01);
 }
 
 // crear un cilindro --- CILINDRO ---
@@ -159,13 +170,14 @@ void buildCylinder(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices
     uint32_t lateralStart = (uint32_t)vertices.size();
 
     for (int i = 0; i <= segments; ++i) {
-        float theta = (float)i / segments * 2.0f * glm::pi<float>();
+        float u = (float)i / segments;
+        float theta = u * 2.0f * glm::pi<float>();
         float cx = cosf(theta) * radius;
         float cz = sinf(theta) * radius;
         glm::vec3 normal(cx / radius, 0.0f, cz / radius);
 
-        Vertex top;    top.position = glm::vec3(cx, h, cz); top.normal = normal;
-        Vertex bottom; bottom.position = glm::vec3(cx, -h, cz); bottom.normal = normal;
+        Vertex top;    top.position = glm::vec3(cx, h, cz);     top.normal = normal;    top.texCoord = glm::vec2(u, 1.0f);
+        Vertex bottom; bottom.position = glm::vec3(cx, -h, cz); bottom.normal = normal; bottom.texCoord = glm::vec2(u, 0.0f);
 
         vertices.push_back(top);
         vertices.push_back(bottom);
@@ -188,15 +200,17 @@ void buildCylinder(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices
 
     // --- TAPA SUPERIOR ---
     uint32_t topCenter = (uint32_t)vertices.size();
-    Vertex centerTop; centerTop.position = glm::vec3(0, h, 0); centerTop.normal = glm::vec3(0, 1, 0);
+    Vertex centerTop; centerTop.position = glm::vec3(0, h, 0); centerTop.normal = glm::vec3(0, 1, 0); centerTop.texCoord = glm::vec2(0.5f, 0.5f);
     vertices.push_back(centerTop);
 
     uint32_t topRingStart = (uint32_t)vertices.size();
     for (int i = 0; i <= segments; ++i) {
-        float theta = (float)i / segments * 2.0f * glm::pi<float>();
+        float u = (float)i / segments;
+        float theta = u * 2.0f * glm::pi<float>();
         float cx = cosf(theta) * radius;
         float cz = sinf(theta) * radius;
         Vertex v; v.position = glm::vec3(cx, h, cz); v.normal = glm::vec3(0, 1, 0);
+        v.texCoord = glm::vec2(0.5f + cosf(theta) * 0.5f, 0.5f + sinf(theta) * 0.5f);
         vertices.push_back(v);
     }
 
@@ -208,15 +222,17 @@ void buildCylinder(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices
 
     // --- TAPA INFERIOR ---
     uint32_t botCenter = (uint32_t)vertices.size();
-    Vertex centerBot; centerBot.position = glm::vec3(0, -h, 0); centerBot.normal = glm::vec3(0, -1, 0);
+    Vertex centerBot; centerBot.position = glm::vec3(0, -h, 0); centerBot.normal = glm::vec3(0, -1, 0); centerBot.texCoord = glm::vec2(0.5f, 0.5f);
     vertices.push_back(centerBot);
 
     uint32_t botRingStart = (uint32_t)vertices.size();
     for (int i = 0; i <= segments; ++i) {
-        float theta = (float)i / segments * 2.0f * glm::pi<float>();
+        float u = (float)i / segments;
+        float theta = u * 2.0f * glm::pi<float>();
         float cx = cosf(theta) * radius;
         float cz = sinf(theta) * radius;
         Vertex v; v.position = glm::vec3(cx, -h, cz); v.normal = glm::vec3(0, -1, 0);
+        v.texCoord = glm::vec2(0.5f + cosf(theta) * 0.5f, 0.5f + sinf(theta) * 0.5f);
         vertices.push_back(v);
     }
 

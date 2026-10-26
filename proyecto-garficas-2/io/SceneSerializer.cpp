@@ -90,13 +90,13 @@ static json objectToJson(const Object* o) {
     m["id"]   = o->id;
     m["name"] = o->name;
     m["type"] = static_cast<int>(o->type);
-    m["diffuseColor"] = vec3ToJson(o->diffuseColor);
+    m["diffuseColor"] = vec3ToJson(o->material.diffuseColor);
     m["transform"] = {
         { "position", vec3ToJson(o->transform.position) },
         { "rotation", vec3ToJson(o->transform.rotation) },
         { "scale",    vec3ToJson(o->transform.scale) }
     };
-    m["alpha"]        = o->alpha;
+    m["alpha"]        = o->material.alpha;
     m["wireframe"]    = o->wireframe;
     m["showNormals"]  = o->showNormals;
     m["showVertices"] = o->showVertices;
@@ -120,10 +120,10 @@ static bool objectFromJson(const json& m, Object& o) {
         o.type = static_cast<MODEL_TYPE>(type);
     }
 
-    glm::vec3 c = o.diffuseColor;
+    glm::vec3 c = o.material.diffuseColor;
     auto itc = m.find("diffuseColor");
     if (itc != m.end() && jsonToVec3(*itc, c))
-        o.diffuseColor = c;
+        o.material.diffuseColor = c;
 
     auto itt = m.find("transform");
     if (itt != m.end() && itt->is_object()) {
@@ -136,7 +136,7 @@ static bool objectFromJson(const json& m, Object& o) {
         if (its != itt->end() && jsonToVec3(*its, v)) o.transform.scale = v;
     }
 
-    jsonGet(m, "alpha", o.alpha);
+    jsonGet(m, "alpha", o.material.alpha);
     jsonGet(m, "wireframe", o.wireframe);
     jsonGet(m, "showNormals", o.showNormals);
     jsonGet(m, "showVertices", o.showVertices);

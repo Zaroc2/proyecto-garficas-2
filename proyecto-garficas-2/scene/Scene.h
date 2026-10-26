@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include "Object.h"
 #include "Camera.h"
+#include "Light.h"
 
 enum class SelectionMode { GLOBAL, LOCAL, TRIANGLE };
 
@@ -18,6 +19,7 @@ public:
     bool depthTestEnabled = true;
     bool backFaceCullingEnabled = true;
     bool blendingEnabled = true;
+    std::vector<Light> lights;
 
     int selectedObjId = -1;
     SelectionMode selectionMode = SelectionMode::GLOBAL;

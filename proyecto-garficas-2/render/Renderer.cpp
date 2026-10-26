@@ -31,6 +31,8 @@ void Renderer::init() {
     LightDirID = glGetUniformLocation(shaderProgram, "lightDir");
     LightColorID = glGetUniformLocation(shaderProgram, "lightColor");
     AmbientID = glGetUniformLocation(shaderProgram, "ambientLight");
+    TextureID = glGetUniformLocation(shaderProgram, "objTexture");
+    UseTextureID = glGetUniformLocation(shaderProgram, "useTexture");
 
     //Cargamos el vao y el vbo para el dibujo de normales y bounding boxes
     debugProgram = LoadShaders("../../../../assets/shaders/debug.vert",
@@ -169,7 +171,7 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
             Object* obj = scene->objects[i].get();
             if (obj->mesh == nullptr) continue;
 
-            bool isTransparent = obj->alpha < 1.0f;
+            bool isTransparent = obj->material.alpha < 1.0f;
             if (pass == 0 && isTransparent) continue;
             if (pass == 1 && !isTransparent) continue;
 
@@ -180,10 +182,20 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
             glUniformMatrix4fv(ProjectionID, 1, GL_FALSE, &Projection[0][0]);
 
             // objectColor ahora es vec4 → incluye alpha
-            glUniform4f(ObjectColorID, obj->diffuseColor.r,
-                obj->diffuseColor.g,
-                obj->diffuseColor.b,
-                obj->alpha);
+            glUniform4f(ObjectColorID, obj->material.diffuseColor.r,
+                obj->material.diffuseColor.g,
+                obj->material.diffuseColor.b,
+                obj->material.alpha);
+
+            if (obj->material.useTexture && obj->material.textureID != 0) {
+                glActiveTexture(GL_TEXTURE0); // Activamos la unidad de textura 0
+                glBindTexture(GL_TEXTURE_2D, obj->material.textureID); // Bindear la textura de este objeto a la unidad de textura activa
+                glUniform1i(TextureID, 0); // objTexture está en la unidad 0
+                glUniform1i(UseTextureID, 1); // Activar el flag en el shader
+            }
+            else {
+                glUniform1i(UseTextureID, 0); // Desactivar el flag si no tiene textura
+            }
 
             glUniform3f(LightDirID, -0.5f, -1.0f, -0.3f); // dirección (se normaliza en el shader)
             glUniform3f(LightColorID, 1.0f, 1.0f, 1.0f); // o el color que quieran

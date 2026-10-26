@@ -4,6 +4,7 @@
 //Entradas
 in vec3 FragPos;
 in vec3 Normal;
+in vec2 TexCoord;
 
 //Salida
 out vec4 FragColor;
@@ -13,6 +14,9 @@ uniform vec4 objectColor;  //Vector 4 para soportar el color difuso (kd) y el ca
 uniform vec3 lightDir;     //Dir de la luz
 uniform vec3 lightColor;   //Color de la luz
 uniform vec3 ambientLight; //Luz ambiental base para que las sombras no sean totalmente negras
+
+uniform sampler2D objTexture;
+uniform bool useTexture;
 
 void main() {
     //Iluminacion Ambiental
@@ -26,6 +30,11 @@ void main() {
     
     //Resultado
     vec3 result = ambient + diffuse;
+
+    if (useTexture) {
+    vec4 texColor = texture(objTexture, TexCoord);
+    result *= texColor.rgb; 
+}
     
     //Se asigna el color resultante y se preserva el canal alfa original
     FragColor = vec4(result, objectColor.a);

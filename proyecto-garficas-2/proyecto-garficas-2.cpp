@@ -63,7 +63,7 @@ int main()
         importedObj->transform.position = glm::vec3(-3.0f, 0.0f, 0.0f);  // al lado de los otros
 		importedObj->transform.scale = glm::vec3(3.0f, 3.0f, 3.0f);
 		importedObj->transform.rotation = glm::vec3(270.0f, -10.0f, 60.0f); // rotación inicial
-        importedObj->diffuseColor = loadedNRT.diffuseColor;
+        importedObj->material.diffuseColor = loadedNRT.diffuseColor;
         importedObj->showVertices = false;
         importedObj->wireframe = false;
         importedObj->showBBox = false;
@@ -78,7 +78,7 @@ int main()
         printf("No se pudo cargar el modelo NRT\n");
     }
 
-    if (true && loadOBJ("../../../../assets/models/carritoFiuFiu.obj", "../../../../assets/models/", loadedSubMeshes)) {
+    if (false && loadOBJ("../../../../assets/models/carritoFiuFiu.obj", "../../../../assets/models/", loadedSubMeshes)) {
         Mesh* loadedMesh = meshManager.getOrLoadModel(101,loadedSubMeshes.vertices, loadedSubMeshes.indices);
 
         for (int i = 0; i < loadedSubMeshes.subMeshes.size(); i++) {
@@ -91,7 +91,7 @@ int main()
         importedObj->name = "modelo_carritoFiuFiu_cargado";
         importedObj->transform.position = glm::vec3(0.0f, 0.0f, 3.0f);  // perpendicular
         importedObj->transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
-        importedObj->diffuseColor = loadedSubMeshes.diffuseColor;
+        importedObj->material.diffuseColor = loadedSubMeshes.diffuseColor;
         importedObj->showVertices = false;
         importedObj->wireframe = false;
         importedObj->showBBox = false;
@@ -112,12 +112,12 @@ int main()
     cube->mesh = meshManager.getCube();
     cube->subMeshes = cube->mesh->getSubMeshes();
     cube->transform.scale = glm::vec3(2.0f, 2.0f, 2.0f);
-    cube->diffuseColor = glm::vec3(1.0f, 0.4f, 0.4f);
+    cube->material.diffuseColor = glm::vec3(1.0f, 0.4f, 0.4f);
     cube->showVertices = false;
     cube->wireframe = false;
     cube->showBBox = false;
     cube->showNormals = true;
-    cube->alpha = 0.5f;
+    cube->material.alpha = 0.5f;
     cube->type = MODEL_TYPE::CUBE;
     scene->addObject(std::move(cube));
 
@@ -126,7 +126,7 @@ int main()
     piramid->mesh = meshManager.getPyramid();
 	piramid->subMeshes = piramid->mesh->getSubMeshes();
     piramid->transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
-    piramid->diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
+    piramid->material.diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
     piramid->showVertices = false;
     piramid->wireframe = false;
     piramid->showBBox = false;
