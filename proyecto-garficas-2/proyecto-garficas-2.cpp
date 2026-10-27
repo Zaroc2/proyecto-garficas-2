@@ -44,7 +44,7 @@ int main()
     std::unique_ptr<Camera> camera = std::make_unique<Camera>();
     Scene* scene = new Scene();
     scene->camera = std::move(camera);
-    scene->camera->updateFromMouse(0, 0);
+    scene->camera->syncYawPitchFromFront(); // B1: init yaw/pitch desde front (sin salto)
 
     // Cargar un modelo .obj
     LoadedModel loadedNRT,loadedSubMeshes;
