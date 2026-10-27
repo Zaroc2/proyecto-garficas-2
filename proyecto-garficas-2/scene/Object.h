@@ -27,6 +27,7 @@ struct Object {
     bool showNormals = false;
     bool showVertices = false;
     bool showBBox = false;
+    bool solid = true; // B1: si false, la camara lo atraviesa (decoracion)
 
     int selectedTriangleId = -1;
     int selectedSubMesh = -1;

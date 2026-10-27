@@ -15,6 +15,7 @@ set(PROJECT_SOURCES
     "scene/Scene.cpp"
     "scene/Object.cpp"
     "scene/Camera.cpp"
+    "scene/Collision.cpp"
     # scene/Material.cpp
     "io/ModelLoader.cpp"
     # "io/MaterialLoader.cpp"
@@ -35,6 +36,7 @@ set(PROJECT_HEADERS
     "scene/Scene.h"
     "scene/Object.h"
     "scene/Camera.h"
+    "scene/Collision.h"
     # scene/Material.h
     "io/ModelLoader.h"
     # "io/MaterialLoader.h"
@@ -42,7 +44,7 @@ set(PROJECT_HEADERS
     # ui/UI.h
 )
 
-add_executable (proyecto-garficas-2 ${PROJECT_SOURCES} ${PROJECT_HEADERS} "render/MeshManager.h" "render/MeshManager.cpp" "scene/Transform.h" "scene/Material.h" "scene/Light.h")
+add_executable (proyecto-garficas-2 ${PROJECT_SOURCES} ${PROJECT_HEADERS} "render/MeshManager.h" "render/MeshManager.cpp" "scene/Transform.h" "scene/Material.h" "scene/Light.h" "scene/Collision.h")
 
 # add_executable (proyecto-garficas-2 "proyecto-garficas-2.cpp" "proyecto-garficas-2.h" "core/window.cpp" "core/window.h" "scene/Scene.h" "scene/Scene.cpp" "scene/Object.h" "scene/Object.cpp" "scene/Camera.h" "scene/Camera.cpp")
 

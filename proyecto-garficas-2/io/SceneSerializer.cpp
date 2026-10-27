@@ -101,6 +101,7 @@ static json objectToJson(const Object* o) {
     m["showNormals"]  = o->showNormals;
     m["showVertices"] = o->showVertices;
     m["showBBox"]     = o->showBBox;
+    m["solid"]        = o->solid;
     m["objPath"] = o->objPath;
     m["mltPath"] = o->mltPath;
     return m;
@@ -141,6 +142,7 @@ static bool objectFromJson(const json& m, Object& o) {
     jsonGet(m, "showNormals", o.showNormals);
     jsonGet(m, "showVertices", o.showVertices);
     jsonGet(m, "showBBox", o.showBBox);
+    jsonGet(m, "solid", o.solid);
     jsonGet(m, "objPath", o.objPath);
     jsonGet(m, "mltPath", o.mltPath);
 
