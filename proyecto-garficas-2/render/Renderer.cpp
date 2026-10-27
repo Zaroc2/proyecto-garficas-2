@@ -4,6 +4,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cstdio>
+//Para texturas
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h> 
+#include <glad/gl.h>
 
 static glm::vec3 cameraPos;
 
@@ -500,4 +504,35 @@ PickingResult Renderer::readPixel(int x, int y) {
     //desbindeamos nuevamente y retornamos
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     return result;
+}
+
+GLuint LoadTexture(const char* path) {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    
+    int width, height, nrComponents;
+    // Forzamos 4 canales (RGBA) para evitar problemas con PNGs transparentes
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 4); 
+    
+    if (data) {
+        GLenum format = GL_RGBA; // Como forzamos 4, siempre es RGBA
+        
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // Parámetros para que la textura se repita si las UVs son > 1.0
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+        printf("Textura cargada: %s (%dx%d)\n", path, width, height);
+    } else {
+        printf("Error al cargar textura: %s\n", path);
+        stbi_image_free(data);
+    }
+    
+    return textureID;
 }

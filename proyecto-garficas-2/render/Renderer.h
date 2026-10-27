@@ -69,3 +69,5 @@ private:
 
     void drawDebugLines(const std::vector<glm::vec3>& pts, const glm::mat4& mvp, const glm::vec3& color);
 };
+
+GLuint LoadTexture(const char* path);

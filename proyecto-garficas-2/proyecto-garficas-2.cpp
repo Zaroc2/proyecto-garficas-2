@@ -106,6 +106,9 @@ int main()
         printf("No se pudo cargar el modelo carritoFiuFiu\n");
     }
 
+    GLuint texCubo = LoadTexture("../../../../assets/textures/cube.jpeg");
+    GLuint texEsfera = LoadTexture("../../../../assets/textures/saul.jpeg");
+
 
     // Cubo rojo
     unique_ptr<Object> cube = make_unique<Object>();
@@ -119,20 +122,24 @@ int main()
     cube->showNormals = true;
     cube->material.alpha = 0.5f;
     cube->type = MODEL_TYPE::CUBE;
+    cube->material.useTexture = true;
+    cube->material.textureID = texCubo;
     scene->addObject(std::move(cube));
 
-    // Pirámide azul
-    unique_ptr<Object> piramid = make_unique<Object>();
-    piramid->mesh = meshManager.getPyramid();
-	piramid->subMeshes = piramid->mesh->getSubMeshes();
-    piramid->transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
-    piramid->material.diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
-    piramid->showVertices = false;
-    piramid->wireframe = false;
-    piramid->showBBox = false;
-    piramid->showNormals = true;
-    piramid->type = MODEL_TYPE::PYRAMID;
-    Object* p = scene->addObject(std::move(piramid));
+    // Esfera azul
+    unique_ptr<Object> sphere = make_unique<Object>();
+    sphere->mesh = meshManager.getSphere();
+	sphere->subMeshes = sphere->mesh->getSubMeshes();
+    sphere->transform.position = glm::vec3(3.0f, 0.0f, 0.0f);
+    sphere->material.diffuseColor = glm::vec3(0.4f, 0.6f, 1.0f);
+    sphere->showVertices = false;
+    sphere->wireframe = false;
+    sphere->showBBox = false;
+    sphere->showNormals = true;
+    sphere->type = MODEL_TYPE::SPHERE;
+	sphere->material.useTexture = true;
+	sphere->material.textureID = texEsfera;
+    Object* p = scene->addObject(std::move(sphere));
 
     //luz Direccional (sol)
     Light sun;
@@ -146,7 +153,7 @@ int main()
     Light bulb;
     bulb.type = LightType::POINT;
     bulb.position = glm::vec3(0.0f, 2.0f, 0.0f);
-    bulb.color = glm::vec3(1.0f, 0.2f, 0.2f); // Rojo
+    bulb.color = glm::vec3(1.0f, 1.0f, 1.0f); // Rojo
     bulb.intensity = 1.0f;
     scene->lights.push_back(bulb);
 
