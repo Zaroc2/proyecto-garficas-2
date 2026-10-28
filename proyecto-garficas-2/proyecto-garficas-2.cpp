@@ -71,6 +71,13 @@ int main()
         importedObj->type = MODEL_TYPE::CUSTOM;
         importedObj->objPath = "../../../../assets/models/nrt.obj";
         importedObj->mltPath = "../../../../assets/models/";
+
+
+        GLuint texEsfera = LoadTexture("../../../../assets/textures/saul.jpeg");
+        importedObj->material.useTexture = true;
+        importedObj->material.textureID = texEsfera;
+
+
         scene->addObject(std::move(importedObj));
 
     }

@@ -75,6 +75,49 @@ void Renderer::init() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), 0);
     glBindVertexArray(0);
 
+    //Skybox
+
+    skyboxProgram = LoadShaders("../../../../assets/shaders/skybox.vert",
+        "../../../../assets/shaders/skybox.frag");
+    skyboxProjectionID = glGetUniformLocation(skyboxProgram, "projection");
+    skyboxViewID = glGetUniformLocation(skyboxProgram, "view");
+
+    std::vector<std::string> faces = {
+        "../../../../assets/textures/skybox/side.jpeg",
+        "../../../../assets/textures/skybox/side.jpeg",
+        "../../../../assets/textures/skybox/top.jpeg",
+        "../../../../assets/textures/skybox/bottom.jpeg",
+        "../../../../assets/textures/skybox/side.jpeg",
+        "../../../../assets/textures/skybox/side.jpeg"
+    };
+
+    cubemapTextureID = LoadCubemap(faces);
+
+    // Cargamos los vértices de la skybox, su vao y vbo
+    float skyboxVertices[] = {
+        -1.0f,  1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f, -1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,  1.0f,  1.0f, -1.0f,  1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,  1.0f, -1.0f,  1.0f, -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f, -1.0f, -1.0f,  1.0f,  1.0f, -1.0f,  1.0f
+    };
+
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindVertexArray(0);
+
 }
 
 void Renderer::initPicking(int width, int height) {
@@ -182,6 +225,25 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
     // Matrices de cámara
     glm::mat4 Projection = scene->camera->getProjectionMatrix(aspectRatio);
     glm::mat4 View = scene->camera->getViewMatrix();
+
+    //Dibujamos el SkyBox antes de todo lo demás
+    glDisable(GL_CULL_FACE); //Desactivamos el cullface porrrr si las moscas
+    glDepthFunc(GL_LEQUAL);  // Hacemos que openGL dibuje aunque el skybox esté en el fondo
+    glDepthMask(GL_FALSE);   // no lo escribimos en el z buffer porque el cielo está virtualmente infinitamente lejos, so no tiene sentido y puede dañar cuentas
+
+    glUseProgram(skyboxProgram);
+    glUniformMatrix4fv(skyboxProjectionID, 1, GL_FALSE, &Projection[0][0]);
+    glUniformMatrix4fv(skyboxViewID, 1, GL_FALSE, &View[0][0]); //Le enviamos los uniforms al shader
+
+    glBindVertexArray(skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextureID);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    glDepthMask(GL_TRUE);    // Restaurar escritura al z buffer
+    glDepthFunc(GL_LESS);    // Restaurar depth test normal
+    if (scene->backFaceCullingEnabled) 
+        glEnable(GL_CULL_FACE);
 
     // Dibujar cada objeto
     glUseProgram(shaderProgram);
@@ -534,5 +596,35 @@ GLuint LoadTexture(const char* path) {
         stbi_image_free(data);
     }
     
+    return textureID;
+}
+
+GLuint LoadCubemap(const std::vector<std::string>& faces) {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+    //Bindeamos una textura de cubemap
+
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++) {
+        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 3);
+        if (data) {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            //Cargamos por cada una de las caras (enums que son x+, x-, y+, etc...) el color, ancho alto y la imagen
+            stbi_image_free(data);
+        }
+        else {
+            printf("Error al cargar cubemap en: %s\n", faces[i].c_str());
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //Configuramos la minificacion y magnificacion linear pa que se vea interpolado y no pixelado
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    //configuramos el wrapping pa que clampee el ultimo pixel siempre
+
     return textureID;
 }
