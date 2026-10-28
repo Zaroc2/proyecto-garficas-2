@@ -67,5 +67,16 @@ private:
     GLuint lightCutOffID[8];
     GLuint lightOuterCutOffID[8];
 
+    //Skybox
+    GLuint skyboxVAO;
+    GLuint skyboxVBO;
+    GLuint skyboxProgram = 0;
+    GLuint skyboxProjectionID;
+    GLuint skyboxViewID;
+    GLuint cubemapTextureID;
+
     void drawDebugLines(const std::vector<glm::vec3>& pts, const glm::mat4& mvp, const glm::vec3& color);
 };
+
+GLuint LoadTexture(const char* path);
+GLuint LoadCubemap(const std::vector<std::string>& faces);
