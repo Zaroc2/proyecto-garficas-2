@@ -102,6 +102,15 @@ static json objectToJson(const Object* o) {
     m["showVertices"] = o->showVertices;
     m["showBBox"]     = o->showBBox;
     m["solid"]        = o->solid;
+
+    // Fase 2.4: estado fisico del cuerpo. boundRadius NO se guarda: es
+    // derivable (bbox + escala) y Physics::step lo refresca cada paso —
+    // nunca persistir lo derivable: se desincroniza.
+    m["isDynamic"]   = o->isDynamic;
+    m["velocity"]    = vec3ToJson(o->velocity);
+    m["restitution"] = o->restitution;
+    m["mass"]        = o->mass;
+
     m["objPath"] = o->objPath;
     m["mltPath"] = o->mltPath;
     return m;
@@ -143,6 +152,19 @@ static bool objectFromJson(const json& m, Object& o) {
     jsonGet(m, "showVertices", o.showVertices);
     jsonGet(m, "showBBox", o.showBBox);
     jsonGet(m, "solid", o.solid);
+
+    // Fase 2.4: estado fisico. Lectura defensiva + saneo por si el JSON se
+    // edito a mano (restitution fuera de [0,1], masa <= 0).
+    jsonGet(m, "isDynamic", o.isDynamic);
+    glm::vec3 vel = o.velocity;
+    auto itv = m.find("velocity");
+    if (itv != m.end() && jsonToVec3(*itv, vel))
+        o.velocity = vel;
+    if (jsonGet(m, "restitution", o.restitution))
+        o.restitution = glm::clamp(o.restitution, 0.0f, 1.0f);
+    if (jsonGet(m, "mass", o.mass) && !(o.mass > 0.0f))
+        o.mass = 1.0f;
+
     jsonGet(m, "objPath", o.objPath);
     jsonGet(m, "mltPath", o.mltPath);
 
@@ -199,6 +221,12 @@ bool saveScene(const Scene* scene, const std::string& path) {
     obj["blendingEnabled"] = scene->blendingEnabled;
     obj["selectionMode"] = static_cast<int>(scene->selectionMode);
     obj["selectedObjId"] = scene->selectedObjId;
+
+    // Fase 2.4: parametros globales de fisica de la escena.
+    obj["physics"] = {
+        { "gravity", scene->physics.gravity },
+        { "groundEnabled", scene->physics.groundEnabled }
+    };
 
     if (scene->camera != nullptr)
         obj["camera"] = cameraToJson(scene->camera.get());
@@ -272,6 +300,14 @@ static bool loadSceneImpl(Scene* scene, MeshManager* manager, const std::string&
         scene->selectionMode = static_cast<SelectionMode>(mode);
     }
     jsonGet(obj, "selectedObjId", scene->selectedObjId);
+
+    // Fase 2.4: parametros globales de fisica. Escenas viejas no traen el
+    // bloque: se conservan los valores por defecto.
+    auto itph = obj.find("physics");
+    if (itph != obj.end() && itph->is_object()) {
+        jsonGet(*itph, "gravity", scene->physics.gravity);
+        jsonGet(*itph, "groundEnabled", scene->physics.groundEnabled);
+    }
 
     // Camara (opcional: escenas viejas pueden no traerla).
     auto itcam = obj.find("camera");

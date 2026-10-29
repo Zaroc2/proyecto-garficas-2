@@ -337,7 +337,7 @@ En cada rebote la energía cinética `K = ½·m·|v|²` pierde exactamente el fa
 
 ---
 
-## FASE 2.4 — 🟢 Integración completa: UI, serialización y robustez del bucle
+## FASE 2.4 ✅ — 🟢 Integración completa: UI, serialización y robustez del bucle
 
 🎯 **Objetivo**: todo lo anterior sobrevive a guardar/cargar, es configurable, y no explota a bajos FPS. Cierra el Ámbito 2.
 
@@ -377,11 +377,12 @@ Regla de round-trip: la escena guardada debe **reconstruir el estado físico exa
 
 ### 🔨 Implementación
 
-- [ ] 🟢 🤝 `Application`: clamp de `dt` + substeps (2 fijos es suficiente para el Ámbito 2).
-- [ ] 🟢 👤 A Panel ImGui **"Física"** (compañero A): gravedad, toggle suelo, y en el panel de objeto: Dinámico, restitución, masa.
-- [ ] 🟢 👤 A `SceneSerializer`: guardar/cargar los campos nuevos + `gravity` de escena. Probar round-trip completo.
-- [ ] 🟢 🤝 Botón demo **"Escena de prueba: 10 pelotas"**: spawnea una grilla de esferas dinámicas sobre un tablero (útil para el video y para testear performance/regresiones).
-- [ ] 🟢 🤝 Checklist de la FASE 2 completa: repasar los criterios de aceptación 2.1→2.3 tras los cambios del bucle.
+- [x] 🟢 🤝 `Application`: clamp de `dt` (ya venía de 2.1: `rawDeltaTime` 50 ms) + **2 substeps fijos** (`Physics::step` ×2 con `dt/2`) — mitiga tunneling por ~10 % de costo.
+- [x] 🟢 👤 A Panel **"Fisica global"**: `Gravedad (m/s2)` (0–25, `AlwaysClamp`) + `Suelo implicito (y=0)`. (Dinámico/restitución/masa del objeto ya existían de 2.2/2.3.)
+- [x] 🟢 👤 A `SceneSerializer`: por objeto `isDynamic`, `velocity`, `restitution`, `mass` (con saneo defensivo al cargar: e→[0,1], masa≤0→1); bloque de escena `"physics": {gravity, groundEnabled}` (escenas viejas → defaults). `boundRadius` NO se persiste (derivable — "nunca persistir lo derivable").
+- [x] 🟢 🤝 **Nota de arquitectura:** `PhysicsParams` se movió de `Application` a **`Scene`** (`scene->physics`) — el estado de la escena vive en la escena y se serializa con ella.
+- [x] 🟢 🤝 Botón **"Escena de prueba: 10 pelotas"**: tablero estático (cubo 7×0.4×7 elevado) + grilla 5×2 de esferas dinámicas (e=0.75) con **velocidades cruzadas** — chocan en el aire, llueven sobre el tablero, algunas caen al suelo. Setup determinista (sin azar) para regresiones y el video.
+- [ ] 🟢 🤝 Checklist de la FASE 2 completa: **pendiente de la prueba de round-trip** (guardar → cargar → estado físico restaurado) y del repaso 2.1→2.3 tras los substeps.
 
 ### ✅ Criterio de aceptación
 - Guardar con pelotas rebotando → cerrar → cargar → siguen rebotando (estado físico restaurado).

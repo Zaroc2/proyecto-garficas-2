@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "Camera.h"
 #include "Light.h"
+#include "Physics.h"
 
 enum class SelectionMode { GLOBAL, LOCAL, TRIANGLE };
 
@@ -21,6 +22,10 @@ public:
     bool blendingEnabled = true;
     std::vector<Light> lights;
     int shadingMode = 2; // 0=Flat, 1=Gouraud, 2=Blinn-Phong
+
+    // Fase 2.4: parametros globales de fisica. Viven en la escena (y no en
+    // Application) para que se guarden/carguen con ella.
+    PhysicsParams physics;
 
     int selectedObjId = -1;
     SelectionMode selectionMode = SelectionMode::GLOBAL;
