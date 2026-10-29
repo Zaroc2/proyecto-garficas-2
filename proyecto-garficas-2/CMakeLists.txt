@@ -16,6 +16,7 @@ set(PROJECT_SOURCES
     "scene/Object.cpp"
     "scene/Camera.cpp"
     "scene/Collision.cpp"
+    "scene/Physics.cpp"
     # scene/Material.cpp
     "io/ModelLoader.cpp"
     # "io/MaterialLoader.cpp"
@@ -38,6 +39,7 @@ set(PROJECT_HEADERS
     "scene/Object.h"
     "scene/Camera.h"
     "scene/Collision.h"
+    "scene/Physics.h"
     # scene/Material.h
     "io/ModelLoader.h"
     # "io/MaterialLoader.h"

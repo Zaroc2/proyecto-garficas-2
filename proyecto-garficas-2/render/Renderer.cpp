@@ -15,6 +15,12 @@ static glm::vec3 cameraPos;
 static bool compareDistance(const std::unique_ptr<Object>& a, const std::unique_ptr<Object>& b) {
     float distA = glm::distance(a->transform.position, cameraPos);
     float distB = glm::distance(b->transform.position, cameraPos);
+    // Fase 2.1 fix: un NaN en la posicion hace que TODAS las comparaciones
+    // den false -> se viola el orden estricto que std::sort exige ->
+    // comportamiento indefinido (puede leer fuera del rango y corromper
+    // el heap). Un NaN se manda al final de la lista (distancia gigante).
+    if (distA != distA) distA = 3.4e38f;
+    if (distB != distB) distB = 3.4e38f;
     return distA > distB; // Más lejos primero
 }
 //Variable y función estática y global para poder ordenarlos por orden respecto a la posición de la cámara con sort
