@@ -3,6 +3,7 @@
 #include <glad/gl.h>
 #include <scene/Scene.h>
 #include <algorithm>
+#include <scene/ParticleSystem.h>
 
 struct PickingResult {
     uint32_t objectId;    // 0 si no hay nada
@@ -17,6 +18,7 @@ public:
     void initPicking(int width, int height);
     void renderForPicking(Scene* scene);
     PickingResult readPixel(int x, int y);
+    void drawParticles(Scene* scene, float aspectRatio);
 
 private:
     GLuint shaderProgram = 0;
@@ -74,6 +76,10 @@ private:
     GLuint skyboxProjectionID;
     GLuint skyboxViewID;
     GLuint cubemapTextureID;
+
+    //Particles
+    GLuint particleProgram, particleVAO, particleVBO;
+    GLuint particleProjID, particleViewID;
 
     void drawDebugLines(const std::vector<glm::vec3>& pts, const glm::mat4& mvp, const glm::vec3& color);
 };
