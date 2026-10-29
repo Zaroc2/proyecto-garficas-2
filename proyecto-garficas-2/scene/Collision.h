@@ -33,5 +33,12 @@ bool SphereVsAabbContact(const glm::vec3& center, float radius,
                          const glm::vec3& boxMin, const glm::vec3& boxMax,
                          Contact& out);
 
+// ----- Fase 2.3: contacto esfera-esfera (dinamico vs dinamico) -----
+// Mismo struct Contact. normal: de A HACIA B. depth = (rA + rB) - dist.
+// Caso centros coincidentes: normal (0,1,0) fija (desempate determinista).
+bool SphereVsSphereContact(const glm::vec3& cA, float rA,
+                           const glm::vec3& cB, float rB,
+                           Contact& out);
+
 // true si la esfera en pos choca con algun objeto solido de la escena.
 bool CollidesWithScene(Scene* scene, const glm::vec3& pos, float radius);

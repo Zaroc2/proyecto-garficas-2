@@ -247,7 +247,7 @@ Orden: **primero corregir posición, después reflejar velocidad** (así la refl
 
 ---
 
-## FASE 2.3 — 💛 Objeto vs objeto: impulsos esfera-esfera
+## FASE 2.3 ✅ — 💛 Objeto vs objeto: impulsos esfera-esfera
 
 🎯 **Objetivo**: dos dinámicos chocan e intercambian momento según sus masas; un dinámico golpea a otro en reposo y lo despierta.
 
@@ -317,11 +317,14 @@ En cada rebote la energía cinética `K = ½·m·|v|²` pierde exactamente el fa
 
 ### 🔨 Implementación
 
-- [ ] 💛 👤 A `Object`: añadir `float invMass` (o helper `getInvMass()` → `isDynamic ? 1/m : 0`).
-- [ ] 💛 👤 A `Collision.h`: `bool SphereVsSphereContact(...) → Contact` reutilizando el struct (normal A→B, depth = pen).
-- [ ] 💛 👤 A `Physics::step`: reorganizar en el orden "integrar → detectar TODO → resolver TODO" (la tabla de la arquitectura): recopilar pares (dinámico-dinámico y dinámico-estático), luego aplicar impulsos y correcciones. No resolver dentro del bucle de detección.
-- [ ] 💛 👤 A Unificar: dinámico vs estático (esfera-AABB) puede reusar la fórmula de impulso con `invM = 0` en vez de la reflexión manual (recomendado) — o mantener ambas y demostrar la equivalencia.
-- [ ] 🟢 🤝 Demo rápida: dos esferas dinámicas creadas desde la UI (`generateSphere` del proyecto).
+- [x] 💛 👤 A `Object`: helper `getInvMass()` (invM = 0 ⇔ estático; con guard anti masa inválida: masa ≤ 0 se trata como 1 kg).
+- [x] 💛 👤 A `Collision.h/.cpp`: `SphereVsSphereContact(...) → Contact` reutilizando el struct (normal A→B, depth = pen; centros coincidentes → normal (0,1,0) determinista).
+- [x] 💛 👤 A `Physics::step` reorganizado a la arquitectura final: **integrar TODO → detectar TODO (lista de pares, sin resolver) → resolver TODO (impulsos + Baumgarte) → suelo**. Clasificación previa de cuerpos (`dyns`/`stats`; decorativos fuera desde el inicio).
+- [x] 💛 👤 A Unificación implementada (opción recomendada del plan): una sola fórmula de impulso para todos los pares; el estático aporta `invM = 0` y el resultado es **exactamente** la reflexión de la Fase 2.2 (verificado numéricamente: din-vs-muro da v.x = −e·v, idéntico). La reflexión manual de 2.2 se eliminó. `e` del par = media simple de ambos `restitution`; bajo el umbral de reposo → e = 0 (cancela la normal: deslizar/reposo, mismo truco de 2.1/2.2).
+- [x] 💛 🤝 Corrección posicional (Baumgarte ligero): `slop = 0.01`, `pct = 0.6`, repartida por invM.
+- [x] 🟢 🤝 Demo posible desde la UI: dos+ esferas dinámicas con `Crear Esfera` + `Dinámico` + `Vel` editable/**Lanzar**.
+- [x] 🟢 👤 A *Extra (adelantado de 2.4):* slider **"Masa (kg)"** (log, 0.1–100) en el panel del objeto — los criterios de aceptación de 2.3 requieren ajustar masas.
+- [x] 💛 🤝 Validación con repro aislado: intercambio exacto (e=1), pérdida 1−e² exacta (e=0.6), billar pesado/ligero exacto, **cadena croquet** (A→B→C: 0, 0, +6.000), equivalencia muro exacta, apiladas 2000 pasos sin NaN. Cero NaN en todo.
 
 ### ✅ Criterio de aceptación
 - Dos esferas iguales chocan frontal a la misma velocidad → ambas rebotan a la mitad de la velocidad relativa (masas iguales se reparten el impulso).

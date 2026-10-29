@@ -93,3 +93,29 @@ bool SphereVsAabbContact(const glm::vec3& center, float radius,
     }
     return true;
 }
+
+// ----- Fase 2.3: contacto esfera-esfera (dinamico vs dinamico) -----
+bool SphereVsSphereContact(const glm::vec3& cA, float rA,
+                           const glm::vec3& cB, float rB,
+                           Contact& out) {
+    const glm::vec3 d = cB - cA;              // de A hacia B
+    const float rSum = rA + rB;
+    const float dist2 = glm::dot(d, d);
+    if (dist2 >= rSum * rSum) return false;   // sin contacto
+
+    if (dist2 > 1e-12f) {
+        const float dist = glm::sqrt(dist2);
+        out.normal = d / dist;
+        out.depth = rSum - dist;
+        // Punto de contacto: mitad del solape entre las dos superficies
+        // (para eventos/debug del Ambito 3).
+        out.point = cA + out.normal * (rA - 0.5f * out.depth);
+    } else {
+        // Centros coincidentes (rarisimo, pero determinista):
+        // normal fija (0,1,0) y penetracion total.
+        out.normal = glm::vec3(0.0f, 1.0f, 0.0f);
+        out.depth = rSum;
+        out.point = cA;
+    }
+    return true;
+}
