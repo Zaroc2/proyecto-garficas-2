@@ -5,6 +5,8 @@ enum class LightType { DIRECTIONAL, POINT, SPOT }; //Direccional = Sol, Point = 
 
 struct Light {
     LightType type = LightType::POINT;
+    bool isCameraLight = false;
+    bool enabled = true;
 
     glm::vec3 position = { 0.0f, 0.0f, 0.0f };     // solo para point y spot
     glm::vec3 direction = { -1.0f, -1.0f, -1.0f }; // solo para Directional y Spot

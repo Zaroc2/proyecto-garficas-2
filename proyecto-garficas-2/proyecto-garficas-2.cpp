@@ -165,16 +165,26 @@ int main()
     scene->lights.push_back(bulb);
 
     //luz Spot (Linterna azul)
-    Light flashlight;
-    flashlight.type = LightType::SPOT;
-    flashlight.position = glm::vec3(3.0f, 3.0f, 3.0f);
-    flashlight.direction = glm::vec3(-1.0f, -1.0f, -1.0f);
-    flashlight.color = glm::vec3(0.2f, 0.5f, 1.0f); // Azul
-    flashlight.intensity = 2.0f;
-    flashlight.cutOff = glm::cos(glm::radians(12.5f));
-    flashlight.outerCutOff = glm::cos(glm::radians(20.0f));
-    scene->lights.push_back(flashlight);
+    Light camFlashlight;
+    camFlashlight.type = LightType::SPOT;
+    camFlashlight.position = glm::vec3(3.0f, 3.0f, 3.0f);
+    camFlashlight.direction = glm::vec3(-1.0f, -1.0f, -1.0f);
+    camFlashlight.color = glm::vec3(0.2f, 0.5f, 1.0f); // Azul
+    camFlashlight.intensity = 2.0f;
+    camFlashlight.cutOff = glm::cos(glm::radians(12.5f));
+    camFlashlight.outerCutOff = glm::cos(glm::radians(20.0f));
+    camFlashlight.isCameraLight = true;
+    scene->lights.push_back(camFlashlight);
     //scene->selectedObjId = p->id;
+
+    //Particles
+    ParticleSystem fire;
+    fire.name = "Fuego Central";
+    fire.emitterPosition = glm::vec3(0.0f, 1.0f, 0.0f);
+    fire.emissionRate = 100.0f;
+    fire.startColor = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f); // Naranja
+    fire.endColor = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);   // Rojo transparente
+    scene->particleSystems.push_back(fire);
 
     // Renderer
     Renderer renderer;
@@ -242,9 +252,25 @@ int main()
         }
         mouseWasPressed = mousePressed;
 
+        //actualiazmos las partículas
+
+         // actualizamos las partículas
+        static double lastParticleTime = glfwGetTime();
+        double currentParticleTime = glfwGetTime();
+        float particleDeltaTime = (float)(currentParticleTime - lastParticleTime);
+        lastParticleTime = currentParticleTime;
+
+        for (int i = 0; i < (int)scene->particleSystems.size(); ++i) {
+            ParticleSystem& ps = scene->particleSystems[i];
+            if (ps.enabled) {
+                ps.Update(particleDeltaTime);
+            }
+        }
 
         // Render
         renderer.renderScene(scene, aspectRatio);
+        renderer.drawParticles(scene, aspectRatio);
+
 
         // Rendering
 		// (Your code clears your framebuffer, renders your other stuff etc.)

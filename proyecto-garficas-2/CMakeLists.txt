@@ -21,6 +21,7 @@ set(PROJECT_SOURCES
     # "io/MaterialLoader.cpp"
     "io/SceneSerializer.cpp"
     # ui/UI.cpp
+    "scene/ParticleSystem.cpp"
 )
 
 set(PROJECT_HEADERS
@@ -42,6 +43,7 @@ set(PROJECT_HEADERS
     # "io/MaterialLoader.h"
     "io/SceneSerializer.h"
     # ui/UI.h
+    "scene/ParticleSystem.h"
 )
 
 add_executable (proyecto-garficas-2 ${PROJECT_SOURCES} ${PROJECT_HEADERS} "render/MeshManager.h" "render/MeshManager.cpp" "scene/Transform.h" "scene/Material.h" "scene/Light.h" "scene/Collision.h")

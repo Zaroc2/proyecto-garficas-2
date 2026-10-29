@@ -4,6 +4,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cstdio>
+#include <cstddef> //offsetof
 //Para texturas
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h> 
@@ -117,6 +118,37 @@ void Renderer::init() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glBindVertexArray(0);
+
+    //Particles
+    particleProgram = LoadShaders("../../../../assets/shaders/particle.vert",
+        "../../../../assets/shaders/particle.frag");
+    if (particleProgram == 0) {
+        printf("Error: no se pudieron compilar los shaders de particulas\n");
+    }
+
+    particleProjID = glGetUniformLocation(particleProgram, "projection");
+    particleViewID = glGetUniformLocation(particleProgram, "view");
+
+    glGenVertexArrays(1, &particleVAO);
+    glGenBuffers(1, &particleVBO);
+
+    glBindVertexArray(particleVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+
+    // atributo posición
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Particle),(void*)offsetof(Particle, position));
+
+    // atributo color
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Particle),(void*)offsetof(Particle, color));
+
+    // atributo tamaño 
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(Particle),(void*)offsetof(Particle, size));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 }
 
@@ -265,7 +297,7 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
         glUniform3fv(lightDirID[i], 1, glm::value_ptr(l.direction));
         glUniform3fv(lightColorID[i], 1, glm::value_ptr(l.color));
 
-        glUniform1f(lightIntensityID[i], l.intensity);
+        glUniform1f(lightIntensityID[i], l.enabled ? l.intensity : 0.0f);
         glUniform1f(lightConstantID[i], l.constant);
         glUniform1f(lightLinearID[i], l.linear);
         glUniform1f(lightQuadraticID[i], l.quadratic);
@@ -427,6 +459,36 @@ void Renderer::renderScene(Scene* scene, float aspectRatio) {
     }
     glDepthMask(GL_TRUE);
 
+
+    //Si se están seleccionando las luces, las pintamos
+    glUseProgram(debugProgram);
+    glDisable(GL_DEPTH_TEST); // Para que el punto se vea a través de los objetos
+
+    glBindVertexArray(debugVao);
+    glBindBuffer(GL_ARRAY_BUFFER, debugVbo);
+
+    for (int i = 0; i < scene->lights.size(); ++i) {
+        const Light& l = scene->lights[i];
+
+        // dibujamos si es la seleccionada
+        if (i != scene->selectedLightIndex) continue;
+        if (!l.enabled || l.type == LightType::DIRECTIONAL) continue;
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3), &l.position, GL_DYNAMIC_DRAW);
+        glUniform3f(debugColorID, l.color.r, l.color.g, l.color.b);
+        glm::mat4 MVP = Projection * View;
+        glUniformMatrix4fv(debugMvpID, 1, GL_FALSE, &MVP[0][0]);
+        glPointSize(15.0f);
+        glDrawArrays(GL_POINTS, 0, 1);
+    }
+
+    // Restaurar estados
+    if (scene->depthTestEnabled) glEnable(GL_DEPTH_TEST);
+    else glDisable(GL_DEPTH_TEST);
+
+    glBindVertexArray(0);
+    glUseProgram(shaderProgram);
+
 }
 
 //Esta funcion es para dibujar las lineas usando los debug shader para las normales y la bounding box
@@ -566,6 +628,60 @@ PickingResult Renderer::readPixel(int x, int y) {
     //desbindeamos nuevamente y retornamos
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     return result;
+}
+
+void Renderer::drawParticles(Scene* scene, float aspectRatio) {
+    // Si no hay sistemas de partículas, no hacemos nada
+    bool hasActiveParticles = false;
+    for (int i = 0; i < (int)scene->particleSystems.size(); ++i) {
+        ParticleSystem& ps = scene->particleSystems[i];
+        if (ps.enabled && !ps.particles.empty()) {
+            hasActiveParticles = true;
+            break;
+        }
+    }
+    if (!hasActiveParticles) return;
+
+    GLboolean blendWasEnabled = glIsEnabled(GL_BLEND);
+
+    // calculamos las matrices igual que en renderScene
+    glm::mat4 Projection = scene->camera->getProjectionMatrix(aspectRatio);
+    glm::mat4 View = scene->camera->getViewMatrix();
+
+    glUseProgram(particleProgram);
+    glUniformMatrix4fv(particleProjID, 1, GL_FALSE, &Projection[0][0]);
+    glUniformMatrix4fv(particleViewID, 1, GL_FALSE, &View[0][0]);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_PROGRAM_POINT_SIZE);
+
+    glBindVertexArray(particleVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
+
+    // Iteramos sobre TODOS los sistemas en la escena
+    for (int i = 0; i < scene->particleSystems.size(); i++) {
+        ParticleSystem& ps = scene->particleSystems[i];
+
+        if (!ps.enabled || ps.particles.empty()) continue;
+
+        // Subimos este sistema al VBO y lo dibujamos
+        glBufferData(GL_ARRAY_BUFFER,
+            ps.particles.size() * sizeof(Particle),
+            ps.particles.data(),
+            GL_DYNAMIC_DRAW);
+
+        glDrawArrays(GL_POINTS, 0, (GLsizei)ps.particles.size());
+    }
+
+    // Restaurar estados
+    glBindVertexArray(0);
+    glDepthMask(GL_TRUE);
+    if (blendWasEnabled) glEnable(GL_BLEND);
+    else                 glDisable(GL_BLEND);
+    glDisable(GL_PROGRAM_POINT_SIZE);
+    glUseProgram(shaderProgram);
 }
 
 GLuint LoadTexture(const char* path) {

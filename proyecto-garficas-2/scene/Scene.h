@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "Camera.h"
 #include "Light.h"
+#include "ParticleSystem.h"
 
 enum class SelectionMode { GLOBAL, LOCAL, TRIANGLE };
 
@@ -25,10 +26,14 @@ public:
     int selectedObjId = -1;
     SelectionMode selectionMode = SelectionMode::GLOBAL;
 
+    std::vector<ParticleSystem> particleSystems;
+
     Object* addObject(std::unique_ptr<Object> obj);
     void    removeObject(uint32_t id);
     void    clear();
     Object* findById(uint32_t id);
     Object* getSelectedObject();
     void selectObj(uint32_t id);
+
+    int selectedLightIndex = -1;
 };
