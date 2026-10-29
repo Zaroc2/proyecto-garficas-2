@@ -139,7 +139,7 @@ Con `e < 1` los rebotes son infinitos pero cada vez más pequeños: `1, e, e², 
 
 ---
 
-## FASE 2.2 — 💛 Rebote contra estáticos: esfera vs AABB con contacto real
+## FASE 2.2 ✅ — 💛 Rebote contra estáticos: esfera vs AABB con contacto real
 
 🎯 **Objetivo**: la esfera de un objeto dinámico rebota contra los `solid && !isDynamic` de la escena, con normal de contacto correcta y sin hundirse. Es el corazón del requerimiento.
 
@@ -219,7 +219,7 @@ Orden: **primero corregir posición, después reflejar velocidad** (así la refl
 
 ### 🔨 Implementación
 
-- [ ] 💛 👤 A `scene/Collision.h`: nuevo tipo y función (mantener las viejas para la cámara):
+- [x] 💛 👤 A `scene/Collision.h`: nuevo tipo y función (mantener las viejas para la cámara):
   ```cpp
   struct Contact {
       glm::vec3 normal;    // del estático HACIA la esfera
@@ -230,9 +230,10 @@ Orden: **primero corregir posición, después reflejar velocidad** (así la refl
                            const glm::vec3& min, const glm::vec3& max,
                            Contact& out);
   ```
-- [ ] 💛 👤 A Implementar las 6 caras del caso "centro dentro".
-- [ ] 💛 👤 A `Physics::step`: tras integrar, para cada dinámico iterar estáticos (`solid && !isDynamic && mesh`), `GetWorldAABB` + `SphereVsAabbContact` → push-out + reflexión con `restitution` + umbral de reposo de la Fase 2.1.
-- [ ] 🟢 👤 A Validar en la UI: al marcar `isDynamic`, forzar `solid = true`.
+- [x] 💛 👤 A Implementar las 6 caras del caso "centro dentro" (minimum translation axis). **Limitación verificada:** si el dinámico descansa en la costura entre dos colisionadores (estático+ suelo), el push-out de ambos se equilibra y el objeto queda *incrustado pero estable* (velocidad a 0, sin NaN ni jitter). Evitar spawn dentro de estáticos en demos.
+- [x] 💛 👤 A `Physics::step`: tras integrar, para cada dinámico iterar estáticos (`solid && !isDynamic && mesh`), `GetWorldAABB` + `SphereVsAabbContact` → push-out + reflexión con `restitution` + umbral de reposo de la Fase 2.1 (bajo umbral → deslizar en vez de rebotar). **Orden:** estáticos primero (geometría real), suelo al final (red de seguridad).
+- [x] 🟢 👤 A Validar en la UI: al marcar `isDynamic`, forzar `solid = true` (ya venía de la Fase 2.1).
+- [x] 🟢 🤝 *Extra para tests (añadido, no estaba en el plan):* el "Vel:" del panel pasa a `DragFloat3` **editable** y nuevo botón **"Lanzar"** (impulso horizontal de 6 m/s desde la cámara hacia el objeto). Sin esto no se pueden verificar los criterios de rebote desde la UI. Matemática validada con repro aislado (espejo, bisectriz, reposo, tunneling, cero NaN).
 
 ### ✅ Criterio de aceptación
 - Pelota lanzada horizontal contra una pared: rebota simétrico y conserva la componente paralela (se ve "ping-pong" entre dos paredes).

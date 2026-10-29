@@ -1,6 +1,7 @@
 #include <scene/Physics.h>
 #include <scene/Scene.h>
 #include <scene/Object.h>
+#include <scene/Collision.h>
 #include <render/Mesh.h>
 #include <cstdio>
 
@@ -78,7 +79,42 @@ void Physics::step(Scene* scene, float dt, const PhysicsParams& params) {
         obj->velocity.y -= params.gravity * dt;
         obj->transform.position += obj->velocity * dt;
 
-        // --- 2. Suelo implicito y = 0 (normal +Y) ---
+        // --- 2. Rebote contra ESTATICOS solidos (Fase 2.2) ---
+        // La geometria real de la escena primero; el suelo implicito va al
+        // final (red de seguridad). Push-out ANTES de reflejar: la
+        // reflexion se calcula con la geometria ya corregida.
+        for (const auto& s : scene->objects) {
+            if (s == nullptr || s->isDynamic || !s->solid || s->mesh == nullptr) continue;
+
+            glm::vec3 wmin, wmax;
+            if (!GetWorldAABB(s.get(), wmin, wmax)) continue;
+
+            Contact ct;
+            if (!SphereVsAabbContact(obj->transform.position, r, wmin, wmax, ct)) continue;
+
+            // Correccion de posicion (push-out): reponer el cuerpo justo
+            // en contacto con el AABB (sin hundirse, sin temblor).
+            obj->transform.position += ct.normal * ct.depth;
+
+            // Reflexion de la velocidad, SOLO si se acercan (vn < 0):
+            //   v' = v - (1 + e) * vn * n
+            // La componente tangencial se conserva (rebote "ping-pong"
+            // entre dos paredes: solo cambia la normal).
+            const float vn = glm::dot(obj->velocity, ct.normal);
+            if (vn < 0.0f) {
+                if (glm::abs(vn) < restThreshold) {
+                    // Reposo en la normal: quitar SOLO la componente normal
+                    // (el cuerpo desliza por la superficie). Evita los
+                    // micro-rebotes en contacto sostenido, igual que el
+                    // umbral del suelo.
+                    obj->velocity -= ct.normal * vn;
+                } else {
+                    obj->velocity -= (1.0f + obj->restitution) * vn * ct.normal;
+                }
+            }
+        }
+
+        // --- 3. Suelo implicito y = 0 (normal +Y) ---
         if (params.groundEnabled && obj->transform.position.y < r) {
             // Correccion de posicion: sacar el centro del plano (push-out).
             obj->transform.position.y = r;

@@ -18,5 +18,20 @@ bool AabbVsAabb(const glm::vec3& minA, const glm::vec3& maxA,
 bool SphereVsAabb(const glm::vec3& center, float radius,
                   const glm::vec3& boxMin, const glm::vec3& boxMax);
 
+// ----- Fase 2.2: contacto esfera-AABB con informacion completa -----
+// La version de arriba solo dice "si/no" (suficiente para la camara, B1).
+// Esta devuelve ademas normal/depth/punto, que es lo que la fisica necesita
+// para reflejar la velocidad y corregir la posicion.
+
+struct Contact {
+    glm::vec3 normal = { 0.0f, 0.0f, 0.0f }; // del AABB HACIA el centro de la esfera
+    float depth = 0.0f;                      // magnitud del push-out (>= 0)
+    glm::vec3 point = { 0.0f, 0.0f, 0.0f };  // punto de contacto (q), para eventos/debug (Ambito 3)
+};
+
+bool SphereVsAabbContact(const glm::vec3& center, float radius,
+                         const glm::vec3& boxMin, const glm::vec3& boxMax,
+                         Contact& out);
+
 // true si la esfera en pos choca con algun objeto solido de la escena.
 bool CollidesWithScene(Scene* scene, const glm::vec3& pos, float radius);

@@ -48,3 +48,48 @@ bool CollidesWithScene(Scene* scene, const glm::vec3& pos, float radius) {
     }
     return false;
 }
+
+// ----- Fase 2.2: contacto esfera-AABB con normal/depth/punto -----
+bool SphereVsAabbContact(const glm::vec3& center, float radius,
+                         const glm::vec3& boxMin, const glm::vec3& boxMax,
+                         Contact& out) {
+    // 1) Punto mas cercano del AABB al centro: saturar cada componente.
+    //    (La version bool de arriba ya hacia el clamp; esta lo APROVECHA
+    //    para calcular la normal y la profundidad.)
+    const glm::vec3 q = glm::clamp(center, boxMin, boxMax);
+    const glm::vec3 d = center - q;              // del AABB hacia la esfera
+    const float dist2 = glm::dot(d, d);
+    if (dist2 >= radius * radius) return false; // sin contacto
+
+    if (dist2 > 1e-12f) {
+        // 2) Caso normal: centro FUERA del AABB.
+        //    normal = d normalizado; depth = lo que falta para quedar
+        //    exactamente en contacto (distancia r del punto mas cercano).
+        const float dist = glm::sqrt(dist2);
+        out.normal = d / dist;
+        out.depth = radius - dist;
+        out.point = q;
+    } else {
+        // 3) Centro DENTRO del AABB (dt largo, solape al colocar, o un
+        //    push-out de otro estatico lo metio): empujar por la cara de
+        //    MENOR penetracion (minimum translation axis). Probar las 6
+        //    caras y elegir la mas cercana al centro.
+        struct Face { float dist; glm::vec3 n; };
+        const Face faces[6] = {
+            { center.x - boxMin.x, glm::vec3(-1.0f, 0.0f, 0.0f) }, // cara -X
+            { boxMax.x - center.x, glm::vec3( 1.0f, 0.0f, 0.0f) }, // cara +X
+            { center.y - boxMin.y, glm::vec3(0.0f, -1.0f, 0.0f) }, // cara -Y
+            { boxMax.y - center.y, glm::vec3(0.0f,  1.0f, 0.0f) }, // cara +Y
+            { center.z - boxMin.z, glm::vec3(0.0f, 0.0f, -1.0f) }, // cara -Z
+            { boxMax.z - center.z, glm::vec3(0.0f, 0.0f,  1.0f) }, // cara +Z
+        };
+        const Face* best = &faces[0];
+        for (int i = 1; i < 6; ++i)
+            if (faces[i].dist < best->dist) best = &faces[i];
+        out.normal = best->n;
+        // Hay que sacar el centro hasta la cara elegida y luego r mas alla.
+        out.depth = best->dist + radius;
+        out.point = q; // == center
+    }
+    return true;
+}
