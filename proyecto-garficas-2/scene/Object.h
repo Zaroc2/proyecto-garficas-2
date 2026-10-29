@@ -29,6 +29,13 @@ struct Object {
     bool showBBox = false;
     bool solid = true; // B1: si false, la camara lo atraviesa (decoracion)
 
+    // Fase 2.1 (fisica): cuerpo dinámico modelado como esfera envolvente.
+    bool isDynamic = false;                    // false = estatico (muro)
+    glm::vec3 velocity = { 0.0f, 0.0f, 0.0f }; // m/s
+    float restitution = 0.6f;                  // e en [0,1]: 1 = rebote perfecto
+    float mass = 1.0f;                         // kg (se usa en Fase 2.3)
+    float boundRadius = 0.5f;                  // esfera envolvente (la refresca Physics::step)
+
     int selectedTriangleId = -1;
     int selectedSubMesh = -1;
 };

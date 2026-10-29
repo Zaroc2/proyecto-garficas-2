@@ -58,7 +58,7 @@ Dentro de `Physics::step` el orden SIEMPRE es:
 
 ---
 
-## FASE 2.1 — 💛 El cuerpo dinámico: velocidad, gravedad y suelo
+## FASE 2.1 ✅ — 💛 El cuerpo dinámico: velocidad, gravedad y suelo
 
 🎯 **Objetivo**: que un objeto marcado como "dinámico" caiga con gravedad y rebote en el suelo `y = 0` hasta quedarse quieto. Sin choques contra otros objetos todavía.
 
@@ -110,7 +110,7 @@ Con `e < 1` los rebotes son infinitos pero cada vez más pequeños: `1, e, e², 
 
 ### 🔨 Implementación
 
-- [ ] 🟢 👤 A `scene/Object.h`: añadir campos
+- [x] 🟢 👤 A `scene/Object.h`: añadir campos
   ```cpp
   bool isDynamic = false;          // dynamic vs static
   glm::vec3 velocity = {0,0,0};    // m/s
@@ -118,15 +118,15 @@ Con `e < 1` los rebotes son infinitos pero cada vez más pequeños: `1, e, e², 
   float mass = 1.0f;               // kg (masa "real", se usa en Fase 2.3)
   float boundRadius = 0.5f;        // esfera envolvente (calculada al crear/escalar)
   ```
-- [ ] 🟢 👤 A Helper `computeBoundRadius(Object*)`: `r = 0.5f · length((bboxMax − bboxMin) · scale)` (bbox del mesh ya está normalizado a ~1 unidad). Recalcular cuando cambie `scale` en la UI.
-- [ ] 🟢 👤 A Crear `scene/Physics.h/.cpp`:
+- [x] 🟢 👤 A Helper `computeBoundRadius(Object*)`. **Decisión de implementación (devía del plan original):** esfera **INSCRITA** → `r = 0.5f · min componente de ((bboxMax − bboxMin) · |scale|)`. Razón: con la circunscrita (`0.5 · length`) los cubos flotan ~0.37 sobre el suelo y el demo de 2.1 se ve roto; con la inscrita apoyan plano (y las esferas son exactas). Contrapartida documentada en riesgos de 2.2. Se refresca en cada `Physics::step` (cubre cambios de escala desde la UI).
+- [x] 🟢 👤 A Crear `scene/Physics.h/.cpp` (añadido `bool groundEnabled` a `PhysicsParams`):
   ```cpp
   struct PhysicsParams { float gravity = 9.81f; float restThreshold = 0.35f; };
   void Physics::step(Scene* scene, float dt, const PhysicsParams& p);
   ```
   Por ahora `step` solo hace: integrar semi-implícito + suelo `y = 0`.
-- [ ] 🟢 🤝 Llamar `Physics::step(...)` en `Application::run` entre `processInput` e `interface`, con `dt` ya calculado.
-- [ ] 🟢 👤 A UI (compañero A): checkbox **"Dinámico"** en el panel del objeto seleccionado + botón **"Soltar"** (posición += 2 en Y y `isDynamic = true`) para probar.
+- [x] 🟢 🤝 Llamar `Physics::step(...)` en `Application::run` entre `processInput` e `interface`. **Nota de implementación:** `calculateDeltaTime()` multiplicaba el dt ×10 (hack histórico de velocidad de cámara) → se añadió `rawDeltaTime` (dt real, clamp 50 ms) usado solo por la física.
+- [x] 🟢 👤 A UI (compañero A): checkbox **"Dinámico"** (fuerza `solid`), slider **"Rebote (e)"**, lectura en vivo de velocidad y radio envolvente, y botón **"Soltar"** (+2 en Y) en el panel del objeto.
 
 ### ✅ Criterio de aceptación
 - Cubo dinámico soltado desde `y = 5` rebota en el suelo con altura decreciente y queda quieto (sin vibrar) en < 10 s.
@@ -134,7 +134,8 @@ Con `e < 1` los rebotes son infinitos pero cada vez más pequeños: `1, e, e², 
 - Un objeto estático nunca se mueve solo.
 
 ### ⚠️ Riesgos
-- Si `dt` del primer frame es enorme (carga de assets), el objeto atraviesa el suelo: **clamp inicial de `dt` a 50 ms** (la solución seria va en Fase 3.1).
+- ✔ Aplicado: `rawDeltaTime` con clamp de 50 ms en `calculateDeltaTime()` (la solución de verdad va en Fase 3.1).
+- 🔧 **Post-mortem — bug "-nan en X/Y" al deseleccionar objetos dinámicos:** causa raíz = **build incremental con `.obj` stale**: `Scene.cpp`, `Collision.cpp`, `Camera.cpp` y `SceneSerializer.cpp` seguían compilados contra el `Object.h` previo a la fase. `Scene::selectObj()` (binario viejo) escribía `selectedTriangleId/-SubMesh = -1` (0xFFFFFFFF) en los offsets donde el layout nuevo vive `velocity.x/y` → `-nan(ind)` solo en X e Y (Z a salvo) → la posición se NaN-ea en el paso siguiente. Detectado con el watchdog de `Physics::step` (huella: `vel=(-nan,-nan,0)`). Fix: rebuild completo (`cmake --build out/build/x64-debug --clean-first`). **Regla:** si un build falla a medias (p. ej. `cl.exe` sin entorno VS), el deplog de Ninja queda parcial → tras cambiar HEADERS, reconstruir limpio. Blindajes añadidos de paso: `dt`/radio NaN-safe en `Physics::step`, comparador del `std::sort` del renderer NaN-safe, bbox definido para meshes sin vértices.
 
 ---
 
@@ -241,7 +242,7 @@ Orden: **primero corregir posición, después reflejar velocidad** (así la refl
 
 ### ⚠️ Riesgos
 - 💛 Objects escalados no uniformemente: el AABB mundial de `GetWorldAABB` es correcto (8 esquinas), pero la **esfera envolvente** con escala no uniforme sobre-estima: aceptable en Ámbito 2, documentado.
-- 💛 Cuadrado contra pared (esfera envolvente de un cubo): rebota un poco antes de tocar visualmente. Mitigación barata: `boundRadius = 0.5 · min((max−min)·scale)` (esfera inscrita) — rebota un poco después de tocar. Para el video, usar esferas/pelotas.
+- 💛 Cuadrado contra pared (esfera envolvente de un cubo): con la esfera **inscrita** (convención por defecto desde 2.1) rebota un poco **después** de tocar visualmente. Para las demos contra paredes, usar esferas (esfera exacta: cero error).
 
 ---
 
